@@ -1,0 +1,21 @@
+{
+  "anilist-media.txt": "dd5f081fc802e2d35394325fc175b025eaa639547a96a4631e71ecf73cfd945e",
+  "anilist-pagination.txt": "a66f8ed1e03e53ecb178291efa98440c86d0c4957971c91c3feab2e5663f48b5",
+  "anilist-probe.txt": "e9a6bfcf3ceaadeff03c14fab678a1b0255829dfd1c40a90ea92da4075f78236",
+  "anilist-rate.txt": "ec372348d4db8e04332438f6ff81f1cc9d536aba492a6a5fc4ab8226efc2b50a",
+  "anilist-terms.txt": "41d0b910af912e9b0528437e94fa07a6e3ee2ed70ff56b8e1bee0618b6fae95f",
+  "collect_evidence.py": "fdb503b196fc485aa1b7515e593966f82d6d58ff2475dc7b5a783bffa32f5646",
+  "jikan-announcement.txt": "a767146e1f0394bee9d89d1b19b5971bd8b60419b72ae2f68e3abb4e284c432b",
+  "jikan-spec.txt": "df0953ab23d91d21f6a10640ee560a6b6105d01db2ca92a3eb69bd4ccae40af4",
+  "jikan-terms-readable.txt": "15fbecce001b34f0688d652792ddddcb6e8ab17a7c56c78ac74d19f50d25e98e",
+  "jikan-terms.html": "8514f0009a58c6e0acb5468f88037732b59b70af5e524f452e3bef8fb33effc5",
+  "mal-authorization-readable.txt": "83637a4fb1ffbbc8648b237063c9663ce96bd7d836cce456ad597e34ab1cb777",
+  "mal-authorization.html": "e150254457ae75763e04ce8bb62ae836d6d25dd8da7dcc1c711bbfb20b952502",
+  "mal-probe-no-credentials.txt": "af783cf0ac18e742c69daa60fb89ab22d0869038f6e0f6cdb094fc819b4d89cd",
+  "mal-reference-readable.txt": "9eb71b4982d702f67c254aec2f451c9230d5f186abe1a0218e7cd28d99460861",
+  "mal-reference.txt": "5784f94ee82ea754167ac7f5b8626949efa6e3a37f08ecfad47eda17c68ed6c2",
+  "mal-terms-readable.txt": "0064b7c0b2986a46796472da96d7e139289256b8f2bffe4c8831f5794fd04faf",
+  "mal-terms.txt": "b105b1d38751b89ceae3ad8585cf7078e4bde448f4cf2ff78eb6c8be0765c6b8",
+  "request-log.json": "286a0dc40888f055e905138734cc8836659199b701b8e2105aef199f4b88184e",
+  "researcher_notes.md": "8846923a98fe85acfa22e50c9f1afd9debf50baea4e8d6190e436b994a13cb0d"
+}

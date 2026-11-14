@@ -1,0 +1,275 @@
+[
+  {
+    "name": "detail",
+    "timestamp_utc": "2026-11-14T06:22:20.084735+00:00",
+    "method": "POST",
+    "url": "https://graphql.anilist.co",
+    "request_json": {
+      "query": "{ Media(id:1,type:ANIME) { id idMal title { romaji english native } episodes status format startDate { year month day } endDate { year month day } } }"
+    },
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "X-RateLimit-Limit": "30",
+      "X-RateLimit-Remaining": "29"
+    },
+    "response_json": {
+      "data": {
+        "Media": {
+          "id": 1,
+          "idMal": 1,
+          "title": {
+            "romaji": "Cowboy Bebop",
+            "english": "Cowboy Bebop",
+            "native": "カウボーイビバップ"
+          },
+          "episodes": 26,
+          "status": "FINISHED",
+          "format": "TV",
+          "startDate": {
+            "year": 1998,
+            "month": 4,
+            "day": 3
+          },
+          "endDate": {
+            "year": 1999,
+            "month": 4,
+            "day": 24
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "page1",
+    "timestamp_utc": "2026-11-14T06:22:22.562447+00:00",
+    "method": "POST",
+    "url": "https://graphql.anilist.co",
+    "request_json": {
+      "query": "{ Page(page:1,perPage:1) { pageInfo { currentPage hasNextPage } media(search:\"Cowboy Bebop\",type:ANIME,sort:ID) { id idMal title { romaji english native } episodes status format startDate { year month day } endDate { year month day } } } }"
+    },
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "X-RateLimit-Limit": "30",
+      "X-RateLimit-Remaining": "28"
+    },
+    "response_json": {
+      "data": {
+        "Page": {
+          "pageInfo": {
+            "currentPage": 1,
+            "hasNextPage": true
+          },
+          "media": [
+            {
+              "id": 1,
+              "idMal": 1,
+              "title": {
+                "romaji": "Cowboy Bebop",
+                "english": "Cowboy Bebop",
+                "native": "カウボーイビバップ"
+              },
+              "episodes": 26,
+              "status": "FINISHED",
+              "format": "TV",
+              "startDate": {
+                "year": 1998,
+                "month": 4,
+                "day": 3
+              },
+              "endDate": {
+                "year": 1999,
+                "month": 4,
+                "day": 24
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "page2",
+    "timestamp_utc": "2026-11-14T06:22:24.947281+00:00",
+    "method": "POST",
+    "url": "https://graphql.anilist.co",
+    "request_json": {
+      "query": "{ Page(page:2,perPage:1) { pageInfo { currentPage hasNextPage } media(search:\"Cowboy Bebop\",type:ANIME,sort:ID) { id idMal title { romaji english native } episodes status format startDate { year month day } endDate { year month day } } } }"
+    },
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "X-RateLimit-Limit": "30",
+      "X-RateLimit-Remaining": "27"
+    },
+    "response_json": {
+      "data": {
+        "Page": {
+          "pageInfo": {
+            "currentPage": 2,
+            "hasNextPage": true
+          },
+          "media": [
+            {
+              "id": 5,
+              "idMal": 5,
+              "title": {
+                "romaji": "Cowboy Bebop: Tengoku no Tobira",
+                "english": "Cowboy Bebop: The Movie - Knockin' on Heaven's Door",
+                "native": "カウボーイビバップ天国の扉"
+              },
+              "episodes": 1,
+              "status": "FINISHED",
+              "format": "MOVIE",
+              "startDate": {
+                "year": 2001,
+                "month": 9,
+                "day": 1
+              },
+              "endDate": {
+                "year": 2001,
+                "month": 9,
+                "day": 1
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "upcoming",
+    "timestamp_utc": "2026-11-14T06:22:27.337736+00:00",
+    "method": "POST",
+    "url": "https://graphql.anilist.co",
+    "request_json": {
+      "query": "{ Page(page:1,perPage:2) { media(type:ANIME,status:NOT_YET_RELEASED,isAdult:false,sort:ID_DESC) { id idMal title { romaji english native } episodes status format startDate { year month day } endDate { year month day } } } }"
+    },
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "X-RateLimit-Limit": "30",
+      "X-RateLimit-Remaining": "26"
+    },
+    "response_json": {
+      "data": {
+        "Page": {
+          "media": [
+            {
+              "id": 219866,
+              "idMal": 65437,
+              "title": {
+                "romaji": "Isekai Douraku ni Akitara",
+                "english": null,
+                "native": "異世界道楽に飽きたら"
+              },
+              "episodes": null,
+              "status": "NOT_YET_RELEASED",
+              "format": "TV",
+              "startDate": {
+                "year": 2027,
+                "month": 1,
+                "day": null
+              },
+              "endDate": {
+                "year": null,
+                "month": null,
+                "day": null
+              }
+            },
+            {
+              "id": 219798,
+              "idMal": 65412,
+              "title": {
+                "romaji": "Nanatsuya: Shinobu no Housekibako",
+                "english": null,
+                "native": "七つ屋 志のぶの宝石匣"
+              },
+              "episodes": null,
+              "status": "NOT_YET_RELEASED",
+              "format": "TV",
+              "startDate": {
+                "year": 2027,
+                "month": null,
+                "day": null
+              },
+              "endDate": {
+                "year": null,
+                "month": null,
+                "day": null
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "ongoing",
+    "timestamp_utc": "2026-11-14T06:22:29.761731+00:00",
+    "method": "POST",
+    "url": "https://graphql.anilist.co",
+    "request_json": {
+      "query": "{ Page(page:1,perPage:2) { media(type:ANIME,status:RELEASING,isAdult:false,sort:ID) { id idMal title { romaji english native } episodes status format startDate { year month day } endDate { year month day } } } }"
+    },
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "X-RateLimit-Limit": "30",
+      "X-RateLimit-Remaining": "25"
+    },
+    "response_json": {
+      "data": {
+        "Page": {
+          "media": [
+            {
+              "id": 21,
+              "idMal": 21,
+              "title": {
+                "romaji": "ONE PIECE",
+                "english": "ONE PIECE",
+                "native": "ONE PIECE"
+              },
+              "episodes": null,
+              "status": "RELEASING",
+              "format": "TV",
+              "startDate": {
+                "year": 1999,
+                "month": 10,
+                "day": 20
+              },
+              "endDate": {
+                "year": null,
+                "month": null,
+                "day": null
+              }
+            },
+            {
+              "id": 235,
+              "idMal": 235,
+              "title": {
+                "romaji": "Meitantei Conan",
+                "english": "Detective Conan",
+                "native": "名探偵コナン"
+              },
+              "episodes": null,
+              "status": "RELEASING",
+              "format": "TV",
+              "startDate": {
+                "year": 1996,
+                "month": 1,
+                "day": 8
+              },
+              "endDate": {
+                "year": null,
+                "month": null,
+                "day": null
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]
