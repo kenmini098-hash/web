@@ -39,3 +39,10 @@ Keep Phase 4 active. Review the local code and await the designated API-agent ve
 - Cancelled stale detail requests and guarded stale list/facet updates; pagination reuses submitted criteria.
 - Changed files: `backend/sever.js`, `backend/wikidata.js`, `backend/test/api.test.js`, `backend/test/wikidata.test.js`, `frontend/js/app.js`, this report, `TASK_BOARD.md`, and `PHASE_4_PROVIDER_CHECK.md`.
 - No new dependency, database change, push, deployment, or Phase 5 transition. Frontend race fixes have code review but no automated browser regression yet.
+
+## Follow-up validation
+
+- Six automated tests pass, including rate-limit Retry-After preservation, timeout mapping, upstream HTTP errors, malformed JSON and null JSON rejection.
+- The post-fix Q22126305 TV/year=2013 direct live query timed out at the configured 8-second deadline on 2026-11-15; no successful TV regression is claimed.
+- Neither psql nor docker was found on PATH in this workspace session. This does not prove a remote PostgreSQL service is absent. Database/mail connection details are pending.
+- Permanent account lifetime is recorded; remaining policy questions are pending. Phase 4 is not yet ready for final acceptance.

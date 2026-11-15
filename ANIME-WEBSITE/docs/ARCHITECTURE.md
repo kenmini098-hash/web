@@ -67,3 +67,7 @@ Back up PostgreSQL nightly with encryption and access controls; retain seven dai
 ## 7. Decisions for owner review
 
 The owner selected PostgreSQL, email/password with Argon2id and server-side sessions, no catalog caching, REST/JSON, and exclusion of media absent separate rights approval. The owner approved this architecture, the filter semantics, operational targets, API contract, database schema, and Phase 3 exit on 2026-11-15, then authorized Phase 4 public catalog implementation. Account lifecycle decisions (verification, recovery, deletion/export, retention, token lifetime, mail and registration abuse controls) remain blockers before account/favorite implementation. Hosting vendor selection is deferred to deployment planning against the documented Japan-region and operational requirements.
+
+## Owner clarification ? 2026-11-15
+
+The owner specified permanent account lifetime and authorized continuing Phase 4 through acceptance preparation. Accounts must not expire or be deleted solely due to inactivity. This does not define session/reset-token expiry or settle voluntary account deletion. Email verification, recovery, export/deletion, session/token lifetimes, mail delivery and abuse-control policies remain pending explicit owner clarification. No Phase 5 transition is authorized.

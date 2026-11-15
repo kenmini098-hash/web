@@ -135,6 +135,7 @@ async function fetchJson(url, options, deadline) {
   try {
     if (Buffer.byteLength(text) > 2_000_000) throw new Error("Response too large");
     body = JSON.parse(text);
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Invalid response object");
   } catch {
     throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source returned an invalid response.");
   }

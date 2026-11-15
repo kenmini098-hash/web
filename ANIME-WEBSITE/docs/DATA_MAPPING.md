@@ -59,3 +59,7 @@ Favorites store no title/description/image. If current metadata lookup definitiv
 ## 5. Cache, retention, backup
 
 The owner selected no catalog cache. Do not persist or cache catalog data. Keep user account/session/favorite data retention minimal and define expiry/deletion before production. Target encrypted nightly PostgreSQL backups with seven daily restore points, RPO <= 24 hours, RTO <= 8 hours, and quarterly plus pre-release isolated restore rehearsals. Restrict access and record achieved recovery time/point. The host must support these targets; vendor selection is deferred to implementation planning.
+
+## Owner clarification ? 2026-11-15
+
+The owner specified permanent account lifetime and authorized continuing Phase 4 through acceptance preparation. Accounts must not expire or be deleted solely due to inactivity. This does not define session/reset-token expiry or settle voluntary account deletion. Email verification, recovery, export/deletion, session/token lifetimes, mail delivery and abuse-control policies remain pending explicit owner clarification. No Phase 5 transition is authorized.

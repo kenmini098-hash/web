@@ -37,3 +37,7 @@
 - [x] Product owner approved Phase 1 exit.
 - [x] User separately authorizes transition to Phase 2.
 - [x] Publication decision deferred; no push made.
+
+## Owner clarification ? 2026-11-15
+
+The owner specified permanent account lifetime and authorized continuing Phase 4 through acceptance preparation. Accounts must not expire or be deleted solely due to inactivity. This does not define session/reset-token expiry or settle voluntary account deletion. Email verification, recovery, export/deletion, session/token lifetimes, mail delivery and abuse-control policies remain pending explicit owner clarification. No Phase 5 transition is authorized.

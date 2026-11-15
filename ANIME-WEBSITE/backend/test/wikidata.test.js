@@ -126,3 +126,25 @@ test("malformed Action API search rows become provider errors", async () => {
     global.fetch = originalFetch;
   }
 });
+
+test("provider failures preserve rate limits and distinguish timeouts from invalid JSON", async () => {
+  const originalFetch = global.fetch;
+  const cases = [
+    [() => new Response("", { status: 429, headers: { "Retry-After": "30" } }), 429, "RATE_LIMITED", "30"],
+    [() => { throw new DOMException("Timed out", "TimeoutError"); }, 504, "PROVIDER_TIMEOUT", null],
+    [() => new Response("not json"), 502, "PROVIDER_UNAVAILABLE", null],
+    [() => Response.json(null), 502, "PROVIDER_UNAVAILABLE", null],
+    [() => new Response("", { status: 503 }), 502, "PROVIDER_UNAVAILABLE", null],
+  ];
+  try {
+    for (const [respond, status, code, retryAfter] of cases) {
+      global.fetch = async () => respond();
+      await assert.rejects(
+        listAnime({ mode: "browse", q: null, filters: {}, limit: 1, cursor: null }),
+        error => error instanceof ApiError && error.status === status && error.code === code && error.retryAfter === retryAfter,
+      );
+    }
+  } finally {
+    global.fetch = originalFetch;
+  }
+});

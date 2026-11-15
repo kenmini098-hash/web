@@ -189,3 +189,7 @@ approved the Phase 3 design package and exit, then separately authorized Phase
   2026-11-14, and separately authorized the transition to Phase 2.
 - Deferred region/browser details remain explicit and must be resolved before
   any decision that depends on them.
+
+## Owner clarification ? 2026-11-15
+
+The owner specified permanent account lifetime and authorized continuing Phase 4 through acceptance preparation. Accounts must not expire or be deleted solely due to inactivity. This does not define session/reset-token expiry or settle voluntary account deletion. Email verification, recovery, export/deletion, session/token lifetimes, mail delivery and abuse-control policies remain pending explicit owner clarification. No Phase 5 transition is authorized.
