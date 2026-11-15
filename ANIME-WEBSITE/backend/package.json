@@ -1,0 +1,14 @@
+{
+  "name": "anime-website-backend",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Express API for the Anime Website",
+  "scripts": {
+    "start": "node sever.js",
+    "dev": "node --watch sever.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

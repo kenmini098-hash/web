@@ -1,7 +1,9 @@
 # Anime Website - Gated Project Plan
 
-**Status:** MVP baseline approved; Phase 2 is authorized and active. Phases
-3-7 remain planning only and are not authorized to start.
+**Status:** Phase 1 and Phase 2 exits were approved on 2026-11-14. The owner
+approved the Phase 3 architecture, API contract, schema, and Phase 3 exit on
+2026-11-15, then authorized Phase 4 on 2026-11-15. The public catalog slice is
+in progress; Phases 5-7 remain gated.
 
 ## Delivery and approval rules
 
@@ -25,8 +27,10 @@
 - **ChatGPT / project manager:** Coordinates the seven phases, maintains scope
   and cross-component consistency, reviews architecture and evidence, tracks
   issues, and presents acceptance decisions to the user.
-- **Gemini / research:** Verifies anime API and data claims against primary
-  documentation and usage terms; reports evidence, gaps, and risks.
+- **Owner-designated ChatGPT API agent:** Verifies anime API and data claims
+  against primary documentation and usage terms; reports evidence, gaps, and
+  risks. The owner designated GPT-5.6 Terra for this work. The Project Manager
+  reviews the report independently and does not duplicate assigned API research.
 - **GitHub Copilot / implementation:** Designs the approved UI and implements
   approved frontend, backend, database, and integration work; reports code and
   test evidence. It does not approve its own work.
@@ -59,7 +63,7 @@
   work, changed files, test results, evidence/sources, issues, remaining work,
   recommendation, and status (complete / incomplete / awaiting approval).
 
-## Phase 1 - Requirements and scope (active)
+## Phase 1 - Requirements and scope (completed)
 
 ### Tasks
 
@@ -84,12 +88,12 @@
   decisions, and approves the Phase 1 exit.
 - The user separately authorizes transition to Phase 2.
 
-## Phase 2 - API and data verification (active)
+## Phase 2 - API and data verification (exit approved)
 
 ### Tasks
 
-1. Gemini identifies candidate anime metadata sources using official provider
-   documentation and terms.
+1. The ChatGPT research agent identifies candidate anime metadata sources
+   using official provider documentation and terms.
 2. For each candidate, verify endpoints, HTTP methods, request parameters,
    JSON response shapes, required credentials, pagination, quotas, and rate
    limits.
@@ -97,8 +101,14 @@
    attribution rules, caching/storage rights, and commercial-use restrictions.
 4. Investigate video availability separately; verify rights and provider terms
    before recommending any playback integration.
-5. Gemini submits a sourced comparison and recommendation; ChatGPT checks that
-   claims map to the actual documentation and the approved requirements.
+5. The ChatGPT research agent submits a sourced comparison and recommendation;
+   the Project Manager checks that claims map to the actual documentation and
+   approved requirements.
+6. If the owner rejects candidates or sets a region-specific requirement,
+   verify alternatives against that decision before recommending a source.
+7. The owner prefers a no-cost API, without a vendor-specific preference.
+   Verify that data-use terms, Japanese-language coverage, and quotas fit the
+   approved MVP; a free endpoint alone is not sufficient evidence.
 
 ### Acceptance criteria
 
@@ -110,7 +120,7 @@
 - The user selects or rejects the proposed data source and approves Phase 2
   exit and transition to Phase 3.
 
-## Phase 3 - Architecture and design (not started)
+## Phase 3 - Architecture and design (exit approved 2026-11-15)
 
 ### Tasks
 
@@ -131,11 +141,24 @@
 - Schema, API endpoints, data fields, and ownership of each field are explicit.
 - Security, error handling, responsive behavior, and legal data/video
   constraints are addressed.
+- Operational targets are explicit for supported browsers/viewports, MVP
+  traffic and latency, upstream timeout handling, availability, logging, and
+  backup/recovery; external provider limits are not presented as guarantees.
 - ChatGPT submits the architecture recommendation and tradeoffs; the user
   explicitly approves the architecture, contract, schema, and Phase 3 exit.
-- The user separately authorizes transition to Phase 4.
+- Phase 3 exit does not authorize Phase 4; the user must separately approve
+  transition before any implementation task begins.
 
-## Phase 4 - Implementation (not started)
+The owner approved the current architecture, API contract, and schema and
+explicitly approved Phase 3 exit on 2026-11-15. Account lifecycle decisions
+(verification, recovery, deletion/export, retention, token lifetime, mail and
+registration abuse controls) and hosting vendor selection remain blockers
+that must be resolved before account and favorite implementation. The owner
+separately authorized Phase 4 on 2026-11-15. Hosting-vendor selection is
+deferred to implementation/deployment planning and does not block the public
+catalog slice.
+
+## Phase 4 - Implementation (active; public catalog slice)
 
 ### Tasks
 
@@ -146,13 +169,21 @@
 5. Update technical documents as implementation decisions are completed.
 6. Record changes in the approved Git branch and provide implementation notes.
 
+Current authorized slice: public catalog browse, Japanese-title search,
+type/genre/year filters, and anime details. Account flows, favorites, their
+database persistence, and deployment-vendor selection are not part of this
+increment. Resolve account lifecycle decisions before implementing account or
+favorite flows. A live provider check is required before accepting the
+integration for release.
+
 ### Acceptance criteria
 
 - Implemented behavior matches approved requirements, architecture, API
   contract, and schema; deviations are reported for review before adoption.
 - No secrets or fabricated production catalog records are introduced.
-- Changes are available in the official GitHub repository with the required
-  commit history.
+- Source changes are committed on a reviewable Git branch. Publishing to the
+  official GitHub repository remains subject to the owner's deferred publish
+  decision.
 - Copilot reports changed files, test evidence, defects, and remaining work;
   ChatGPT reviews before Phase 4 exit.
 - The user approves Phase 4 exit and separately authorizes Phase 5.
@@ -216,9 +247,18 @@
 
 ## Current phase
 
-Phase 2 - API and data verification is active following the user's approval of
-the MVP baseline and instruction to begin. Gemini's sourced verification report
-is pending. The official repository is
-`https://github.com/kenmini098-hash/web.git`; it was confirmed empty on
-2026-11-14. The local project documents have not yet been published there.
-Phase 3-7 remain inactive until the user approves each transition.
+Phase 1 exit and transition to Phase 2 were authorized on 2026-11-14. The owner
+selected Japan, requested Japanese-language data, rejected AniList, Kitsu, and
+Jikan, paused MAL follow-up, and prefers a no-cost API without a
+vendor-specific preference. On 2026-11-14 the owner approved Wikidata
+(WDQS plus the `wbsearchentities` Action API) as the metadata source and
+approved the Phase 2 exit, accepting the reported coverage and operational
+limitations. The user separately authorized Phase 3 design work on
+2026-11-14. These approvals do not grant video or third-party image rights.
+The owner separately authorized Phase 4 public catalog implementation on
+2026-11-15; account/favorite work remains blocked on account lifecycle
+decisions. The official repository is
+`https://github.com/kenmini098-hash/web.git`; the configured local remote
+matches this URL and advertises a `main` branch. Local documentation has
+uncommitted edits and has not been pushed. Phases 5-7 remain inactive until
+their required approvals are given.

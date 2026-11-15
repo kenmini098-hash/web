@@ -1,27 +1,39 @@
 # Anime Website - Phase Task Board
 
-**Current phase:** 2 - API and data verification  
-**Phase status:** Authorized by the product owner; research and repository setup in progress  
+**Current phase:** Phase 4 - Implementation
+**Phase status:** Owner approved the Phase 3 architecture, API contract, and schema, and separately authorized Phase 4 on 2026-11-15. Public catalog implementation is in progress. Account lifecycle decisions block account/favorite work; hosting-vendor selection is deferred to deployment planning.
 **Rule:** Tasks for later phases remain unstarted until explicit user approval.
 
 | ID | Task | Status | Evidence / notes |
 | --- | --- | --- | --- |
-| P1-01 | Inspect the local scaffold and existing project documentation. | Done | Baseline scan found 24 empty scaffold files. Drafts have since been added to `REQUIREMENTS.md`, `PROJECT_PLAN.md`, and `TASK_BOARD.md`; implementation files and `ARCHITECTURE.md`, `API_CONTRACT.md`, and `DATA_MAPPING.md` remain empty. |
-| P1-02 | Record the product objective, scope, constraints, and requirements from the project brief. | Done - approved baseline | `REQUIREMENTS.md`; remaining technical choices are explicitly open. |
-| P1-03 | Identify unresolved product and repository decisions without assuming answers. | Done | Open decisions in `REQUIREMENTS.md`; official repository URL supplied by the user. |
+| P1-01 | Inspect the local scaffold and existing project documentation. | Done | Verified 24 zero-byte scaffold files; filenames are clues only. The `.gitinore` and `backend/sever.js` names are preserved and not treated as behavior or technology evidence. |
+| P1-02 | Record the product objective, scope, constraints, and requirements from the project brief. | Draft updated | `REQUIREMENTS.md`; Node.js/Express.js and product-owner MVP choices are recorded, with remaining decisions explicit. |
+| P1-03 | Identify unresolved product and repository decisions without assuming answers. | Done - draft | `REQUIREMENTS.md`; browser support and publishing updated documents remain undecided. |
 | P1-04 | Define the seven phase gates, transition rule, handoff report, and conflict/source-control rules. | Done - draft | `PROJECT_PLAN.md` |
-| P1-05 | Obtain product owner review and approval of the MVP baseline. | Done | User approved the baseline and said to begin on 2026-11-14. |
-| P1-06 | Obtain approval to transition to Phase 2. | Done | User approved the MVP baseline and authorized work to begin on 2026-11-14. |
-| P2-01 | Verify candidate anime data APIs, response structures, limits, and usage terms. | Pending Gemini report | Gemini channel is not connected in this session; task brief is ready in `PROJECT_PLAN.md`. |
-| P2-02 | Check region-specific restrictions and data gaps; distinguish metadata rights from video rights. | Pending Gemini report | Launch region remains open; report restrictions rather than assume a region. |
-| P2-03 | Review evidence and present a source recommendation to the product owner. | Not started | Requires Gemini's sourced report. |
-| P2-04 | Select/reject a source and approve Phase 2 exit. | Not started | User decision required after report review. |
-| P2-05 | Publish approved project documents to the official GitHub repository. | Pending connection | Repository is empty; GitHub access is not connected and Git CLI is unavailable locally. |
+| P1-05 | Obtain product owner review and approval of the updated requirements draft. | Done | Product owner approved the draft and Phase 1 exit on 2026-11-14; open decisions were explicitly deferred. |
+| P1-06 | Obtain approval to transition to Phase 2. | Done | Product owner explicitly authorized Phase 2 on 2026-11-14. |
+| P2-01 | Verify candidate anime data APIs, response structures, limits, and usage terms. | Done - owner accepted limitations | Japanese title lookup and sample SPARQL fields verified; numerical quotas and production SLO remain unknown, and WDQS is migrating. |
+| P2-02 | Check region-specific restrictions and data gaps; distinguish metadata rights from video rights. | Done - owner accepted limitations | No Japan access restriction found; Japanese titles and generic descriptions verified for three anime-TV entities, but catalog and synopsis completeness are not guaranteed. Video/image rights remain separate. |
+| P2-03 | Review evidence and present a source recommendation to the product owner. | Done - conditional assessment approved | Wikidata (WDQS + `wbsearchentities`) approved as metadata source; coordinator's evidence and limitations are recorded in `API_VERIFICATION_REPORT.md`. |
+| P2-04 | Select/reject a source and approve Phase 2 exit. | Done - approved 2026-11-14 | Product owner approved Wikidata and Phase 2 exit, accepting the reported trade-offs. Phase 3 design work was separately authorized on 2026-11-14. |
+| P2-05 | Publish approved project documents to the official GitHub repository. | Deferred | Product owner deferred the publication decision; configured remote advertises `main`. No push was made. |
+| P3-01 | Propose frontend/backend boundaries and Wikidata data flow. | Done - architecture approved 2026-11-15 | `ARCHITECTURE.md`; owner approved the same-origin Express modular monolith and Wikidata/PostgreSQL boundaries for design. |
+| P3-02 | Define proposed database schema and Wikidata mapping. | Done - schema approved 2026-11-15 | `DATA_MAPPING.md`; owner approved the PostgreSQL schema for design. Account/favorite persistence remains gated on account lifecycle decisions. |
+| P3-03 | Draft REST API contract and UI error/loading/empty states. | Done - API contract approved 2026-11-15 | `API_CONTRACT.md`; owner approved the current contract and filter behavior for design. |
+| P3-04 | Review consistency across requirements, architecture, contract, and mapping. | Done - filter/operational targets approved | Filter/date semantics and browser, load, latency, availability, and backup targets align across design documents; owner approved these targets on 2026-11-15. `API_VERIFICATION_REPORT.md` records upstream evidence and limits. |
+| P3-05 | Obtain owner approval of architecture, contract, schema, and Phase 3 exit. | Done - Phase 3 exit approved 2026-11-15 | `PHASE_3_ACCEPTANCE_REPORT.md` records owner approval. The owner separately authorized Phase 4 on 2026-11-15. |
+| P4-01 | Implement public catalog browse/search/filter/detail API and Wikidata adapter. | Implemented locally; review pending | `backend/sever.js`, `backend/wikidata.js`; one mocked provider-adapter test passes. No live provider request has been made in this phase. |
+| P4-02 | Implement responsive Vietnamese catalog UI and API integration. | Implemented locally; review pending | `frontend/`; includes search, filters, pagination, details, and loading/empty/error states. Browser end-to-end and viewport checks remain. |
+| P4-03 | Implement accounts, favorites, and PostgreSQL persistence. | Blocked | Resolve account verification, recovery, deletion/export, retention, token lifetime, email, and abuse-control policies first. |
+| P4-04 | Verify provider integration against current upstream behavior and terms. | Pending API-agent verification | Use current primary documentation and a live request; recheck WDQS endpoint migration, actual field mappings, and service limits. |
+| P4-05 | Review Phase 4 evidence and obtain owner acceptance. | Not started | Requires completed scoped implementation, remaining checks, and explicit owner approval before Phase 5. |
 
 ## Phase 1 exit checklist
 
-- [x] Requirements and scope draft prepared.
+- [x] Requirements and scope draft prepared and updated with received decisions.
 - [x] Unconfirmed decisions explicitly listed.
-- [x] Product owner approves the MVP baseline.
-- [x] User explicitly authorizes transition to Phase 2.
-- [ ] Publish approved requirements and plan to the official GitHub repository.
+- [x] Product owner reviewed and approved the updated requirements draft.
+- [x] Open decisions were explicitly deferred.
+- [x] Product owner approved Phase 1 exit.
+- [x] User separately authorizes transition to Phase 2.
+- [x] Publication decision deferred; no push made.

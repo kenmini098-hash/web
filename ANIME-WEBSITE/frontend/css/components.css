@@ -1,0 +1,21 @@
+.button { min-height: 42px; padding: 0 17px; border: 1px solid transparent; border-radius: 9px; cursor: pointer; font-size: 14px; font-weight: 750; transition: background-color .15s ease, border-color .15s ease, transform .15s ease; }
+.button:hover { transform: translateY(-1px); }
+.button:disabled { cursor: wait; opacity: .65; transform: none; }
+.button-primary { color: #fff; background: var(--green); }
+.button-primary:hover { background: var(--green-dark); }
+.button-secondary { color: var(--green-dark); border-color: #b8d6c9; background: #edf7f0; }
+.button-secondary:hover { background: #e0f1e6; }
+.button-quiet { color: #485651; border-color: var(--line); background: #fff; }
+.button-quiet:hover { background: #f4f6f3; }
+.icon-button { width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 50%; background: #fff; cursor: pointer; font-size: 25px; line-height: 1; }
+
+.anime-card { display: flex; min-height: 230px; flex-direction: column; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.card-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
+.tag { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 8px; border-radius: 999px; color: #31554a; background: #e9f3ec; font-size: 11px; font-weight: 750; }
+.tag-muted { color: #68736e; background: #f0f2ef; }
+.card-title { align-self: start; padding: 0; border: 0; color: var(--ink); background: none; cursor: pointer; text-align: left; font-size: 23px; font-weight: 750; line-height: 1.3; }
+.card-title:hover { color: var(--green); }
+.card-description { display: -webkit-box; overflow: hidden; margin: 10px 0 18px; color: var(--muted); font-size: 13px; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.card-footer { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+.genre-chip { color: #4b5a54; font-size: 11px; }
+.empty-state { grid-column: 1 / -1; padding: 36px 20px; border: 1px dashed #cbd5ce; border-radius: 14px; color: var(--muted); text-align: center; }

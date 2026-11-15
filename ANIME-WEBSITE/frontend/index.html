@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tìm kiếm thông tin anime từ dữ liệu Wikidata đã đối chiếu.">
+    <title>Anime Atlas — Tra cứu anime</title>
+    <link rel="stylesheet" href="./css/main.css">
+    <link rel="stylesheet" href="./css/components.css">
+    <link rel="stylesheet" href="./css/responsive.css">
+    <script type="module" src="./js/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Anime Atlas — trang chủ">ANIME<span>ATLAS</span></a>
+      <p class="header-note">Dữ liệu có nguồn · Không có video phát trực tuyến</p>
+    </header>
+
+    <main id="main-content" class="page-shell">
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">THƯ VIỆN ANIME</p>
+        <h1 id="page-title">Tìm câu chuyện tiếp theo của bạn.</h1>
+        <p class="intro-copy">Tra cứu tên tiếng Nhật, xem thông tin có nguồn và lọc theo định dạng, thể loại hoặc năm.</p>
+      </section>
+
+      <form id="search-form" class="search-panel">
+        <label class="search-field">
+          <span>Tên anime tiếng Nhật</span>
+          <input id="query" name="q" type="search" maxlength="120" autocomplete="off" placeholder="Ví dụ: 葬送のフリーレン">
+        </label>
+        <div class="filter-grid">
+          <label>
+            <span>Định dạng</span>
+            <select id="entity-type" name="entityType">
+              <option value="">Tất cả</option>
+              <option value="anime_tv">Anime truyền hình</option>
+              <option value="anime_film">Anime điện ảnh</option>
+            </select>
+          </label>
+          <label>
+            <span>Thể loại</span>
+            <select id="genre" name="genreId">
+              <option value="">Tất cả thể loại</option>
+            </select>
+          </label>
+          <label>
+            <span>Năm</span>
+            <input id="year" name="year" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="Ví dụ: 2024">
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="button button-primary" type="submit">Tìm kiếm</button>
+          <button class="button button-quiet" id="clear-filters" type="button">Xóa bộ lọc</button>
+        </div>
+      </form>
+
+      <section class="results-section" aria-labelledby="results-title">
+        <div class="results-heading">
+          <div>
+            <p class="eyebrow">KHÁM PHÁ</p>
+            <h2 id="results-title">Danh sách anime</h2>
+          </div>
+          <p id="result-count" class="result-count"></p>
+        </div>
+        <p id="status" class="status" role="status" aria-live="polite">Đang tải danh sách…</p>
+        <button id="retry" class="button button-secondary" type="button" hidden>Thử lại</button>
+        <div id="results" class="anime-grid" aria-busy="true"></div>
+        <div class="more-row">
+          <button id="load-more" class="button button-secondary" type="button" hidden>Tải thêm</button>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-title">
+      <div class="dialog-topline">
+        <p class="eyebrow">THÔNG TIN CÓ NGUỒN</p>
+        <button id="close-detail" class="icon-button" type="button" aria-label="Đóng chi tiết">×</button>
+      </div>
+      <h2 id="detail-title">Chi tiết anime</h2>
+      <p id="detail-description" class="detail-description"></p>
+      <button id="retry-detail" class="button button-secondary" type="button" hidden>Thử tải lại</button>
+      <dl id="detail-fields" class="detail-fields"></dl>
+      <a id="source-link" class="source-link" href="#" target="_blank" rel="noopener noreferrer">Mở mục Wikidata</a>
+    </dialog>
+  </body>
+</html>
