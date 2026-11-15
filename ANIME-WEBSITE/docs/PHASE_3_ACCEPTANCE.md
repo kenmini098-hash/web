@@ -25,6 +25,20 @@ Bộ tài liệu đủ để chủ dự án xem xét đề xuất, nhưng **chư
 
 ## Các quyết định còn mở
 
+### Tái kiểm tra ngày 15/11/2026
+
+Đã đối chiếu lại working tree theo yêu cầu tiếp tục nghiệm thu. Chưa có bằng chứng đóng bất kỳ finding nào trong năm finding trên:
+
+| Finding | Trạng thái | Điều kiện đóng |
+| --- | --- | --- |
+| R01 | Mở — quyết định phạm vi | Chủ dự án chấp nhận anime-TV và phạm vi lọc thu hẹp, hoặc thiết kế được mở rộng theo yêu cầu đã duyệt. |
+| R02 | Mở — thiếu đặc tả | Contract và mapping thống nhất cách lấy CSRF token trên session đã đăng nhập, sau rotation/reload và khi dùng nhiều tab. |
+| R03 | Mở — thiếu đặc tả | Quy định detail và favorite khi entity đúng loại nhưng thiếu Japanese title; không tạo AnimeSummary vi phạm title bắt buộc. |
+| R04 | Mở — attribution sai | PROJECT_PLAN và PHASE_3_DESIGN_REVIEW dùng GPT-6 Astra theo chỉ dẫn hiện hành. |
+| R05 | Mở — thiếu đặc tả | Có bước xác minh lại mật khẩu, thời điểm/cửa sổ xác minh và hành vi từ chối khi quá hạn cho account deletion. |
+
+Các phần đã đạt ở mức đề xuất vẫn giữ nguyên: phân tách backend/provider/database, khóa và ownership của favorites, response/error envelopes, xử lý null và nguyên tắc bảo mật/khôi phục. Việc schema và payload được viết đầy đủ hơn không tự đóng các khoảng trống hành vi trên. Lần này chỉ nghiệm thu tài liệu, không sửa thiết kế, không chạy kiểm thử ứng dụng và không tự phê duyệt giai đoạn. Kết luận vẫn là chưa đạt phase exit; bước kế tiếp là sửa R02/R03/R04/R05 rồi rà soát lại, song song trình R01 cho chủ dự án.
+
 PostgreSQL, session auth, account verification/recovery/deletion, token lifetime, email service, cache, image policy và bộ lọc cần phê duyệt như đã liệt kê trong bản thiết kế. Browser/performance/backup targets cần chốt hoặc ghi rõ mốc chốt trước kiểm thử/phát hành. Chưa có restore thực tế ở Phase 3 không tự động là lỗi: giai đoạn này chỉ yêu cầu nguyên tắc và kế hoạch, bằng chứng thực thi thuộc giai đoạn sau.
 
 ## Bàn giao
