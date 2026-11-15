@@ -2,6 +2,10 @@
 
 **Status:** Owner-approved Phase 3 design schema (2026-11-15); Phase 4 public catalog implementation was separately authorized on 2026-11-15. PostgreSQL is the owner-selected database. Account/favorite persistence remains blocked pending account lifecycle decisions. Consistent with `ARCHITECTURE.md` and `API_CONTRACT.md`. The owner requested anime-TV and anime-film catalog entries with genre/year filters. Wikidata sample evidence supports these proposed fields/classes but does not establish catalog completeness or operational SLO.
 
+**Current account policy:** [ACCOUNT_POLICY.md](ACCOUNT_POLICY.md) supersedes
+email-verification requirements below. `email_verified_at` remains null and
+does not restrict account use. `verification_tokens` is retained but unused.
+
 ## 1. Source mapping and safe resolution
 
 | Project input/field | Wikidata source | Mapping and absence behavior |

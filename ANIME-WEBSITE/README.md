@@ -19,6 +19,13 @@ process restarts and instances.
 `.env.example` documents the supported environment variables; set them in the
 shell or deployment environment. This starter does not load `.env` files.
 
+## Personal-trial accounts
+
+Email verification is not required. The planned login uses email and password;
+email ownership is not claimed. SMTP is unnecessary for registration/login.
+See [account policy](docs/ACCOUNT_POLICY.md). Account routes/UI are still pending;
+removing verification does not make the whole account feature operational.
+
 ## Account database foundation
 
 The approved lifecycle is no fixed end date, voluntary deletion, and deletion

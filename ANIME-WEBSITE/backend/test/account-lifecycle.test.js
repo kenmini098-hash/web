@@ -56,11 +56,12 @@ test("account lifecycle executes against isolated PostgreSQL SQL engine", async 
       }
     });
 
-    await t.test("expired, anonymous and unverified sessions cannot renew activity or delete an account", async () => {
+    await t.test("personal trial allows unverified emails but rejects expired and anonymous sessions", async () => {
       const unverified = await account();
       await db.query("UPDATE users SET email_verified_at=NULL WHERE id=$1", [unverified.id]);
-      assert.equal(await recordActivity(db, unverified.hash), false);
-      assert.equal(await deleteOwnAccount(db, unverified.hash, true), false);
+      assert.equal(await recordActivity(db, unverified.hash), true);
+      assert.equal((await db.query("SELECT email_verified_at FROM users WHERE id=$1", [unverified.id])).rows[0].email_verified_at, null);
+      assert.equal(await deleteOwnAccount(db, unverified.hash, true), true);
       const expired = await account();
       await db.query(`UPDATE sessions SET created_at=CURRENT_TIMESTAMP - INTERVAL '2 hours',
         expires_at=CURRENT_TIMESTAMP - INTERVAL '1 hour' WHERE id_hash=$1`, [expired.hash]);

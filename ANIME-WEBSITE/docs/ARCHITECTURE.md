@@ -4,6 +4,10 @@
 
 **Baseline:** Vietnamese-first responsive MVP, Japan launch, browse/search/filter/detail, account-synchronized favorites; no ads, paid features, fabricated catalog records, video playback, or watch links. The owner selected Wikidata (`wbsearchentities` plus WDQS) and approved Phase 2. On 2026-11-15 the owner requested anime films and genre/year filters; the design below incorporates those requirements using only field/class evidence checked in `API_VERIFICATION_REPORT.md`. Source approval does not grant image rights.
 
+**Current account policy:** [ACCOUNT_POLICY.md](ACCOUNT_POLICY.md) supersedes
+the email-verification requirements below. Personal-trial authentication uses
+email/password without a confirmation email; session/CSRF protections remain.
+
 ## 1. Proposed system shape
 
 Use a Node.js/Express modular monolith behind one HTTPS origin. Express serves the static UI and `/api/v1/*`, with PostgreSQL on a private connection. A reverse proxy may serve static files separately while preserving same-origin routing. This keeps cookies simple, avoids browser CORS configuration, and leaves fewer operational components than independent frontend/backend services. PostgreSQL is the owner-selected database direction. This vendor-neutral topology is approved; select a specific host during implementation planning after checking Japan-region availability, pricing, privacy terms, backups, secrets, and monitoring.

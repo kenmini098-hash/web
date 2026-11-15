@@ -2,6 +2,11 @@
 
 **Status:** Owner-approved Phase 3 design contract (2026-11-15); Phase 4 public catalog implementation was separately authorized on 2026-11-15. Account endpoints remain design-only pending account lifecycle decisions. Owner selected REST/JSON and approved the current contract, detailed filter semantics, and operational targets. API examples are structural, not live provider records. JSON is UTF-8; timestamps are ISO 8601 UTC. Browser clients call only this API.
 
+**Current account policy:** [ACCOUNT_POLICY.md](ACCOUNT_POLICY.md) supersedes
+email-verification gates below for the personal trial. Register/login use
+email/password without verification; `emailVerified` remains false. The
+candidate verify-email endpoint is excluded. Account routes are not yet live.
+
 ## Conventions and resources
 
 - Success list shape: `{ "items": [...], "page": { "limit": 20, "nextCursor": null }, "facets": { "genres": [] } }`. Genre facets appear only on the first unfiltered page (a search query may be present), reflect its bounded candidates, and are not exhaustive. Return at most 30 facets, sorted by Japanese label and then ID; omit counts. On filtered or continued pages return an empty facet list; clients retain facets in page state and refetch the unfiltered first page when opening a filtered URL directly. No total count is promised. Default and maximum limit are 20. Search `q` is trimmed and must contain 1–120 Unicode characters. Cursor is opaque, integrity-protected, and bound to its query/filter or user; invalid/mismatched cursor returns `400`. Reject combined browse mode and search query. Search may return fewer items after type qualification; continuation preserves upstream search position, not the count of qualified items.

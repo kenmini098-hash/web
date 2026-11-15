@@ -5,7 +5,6 @@ async function recordActivity(db, sessionHash) {
     FROM sessions s
     WHERE s.id_hash = $1 AND s.user_id = u.id
       AND s.expires_at > statement_timestamp()
-      AND u.email_verified_at IS NOT NULL
       AND u.last_active_at > statement_timestamp() - INTERVAL '168 hours'
     RETURNING u.id`, [sessionHash]);
   return result.rows.length === 1;
@@ -19,7 +18,6 @@ async function deleteOwnAccount(db, sessionHash, confirmed) {
       AND s.expires_at > statement_timestamp()
       AND s.authenticated_at >= statement_timestamp() - INTERVAL '5 minutes'
       AND s.authenticated_at <= statement_timestamp()
-      AND u.email_verified_at IS NOT NULL
       AND u.last_active_at > statement_timestamp() - INTERVAL '168 hours'
     RETURNING u.id`, [sessionHash]);
   return result.rows.length === 1;

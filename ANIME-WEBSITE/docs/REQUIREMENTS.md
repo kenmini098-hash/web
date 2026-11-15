@@ -160,6 +160,11 @@ available after password reauthentication and confirmation. This supersedes
 earlier pending-approval wording for these decisions. Verification, recovery,
 export, session/token lifetimes, email and abuse-control choices remain open.
 
+**Personal-trial clarification:** The owner removed email verification and
+specified free APIs for this personal experiment. Email/password authentication
+remains. See [ACCOUNT_POLICY.md](ACCOUNT_POLICY.md); verification and SMTP for
+verification are no longer blockers. Recovery email is a separate feature.
+
 ## 8. Open decisions for the product owner
 
 1. Before account/favorite implementation, resolve account lifecycle policies (verification,

@@ -51,6 +51,17 @@ Keep Phase 4 active. Review the local code and await the designated API-agent ve
 - Changed files: `backend/sever.js`, `backend/wikidata.js`, `backend/test/api.test.js`, `backend/test/wikidata.test.js`, `frontend/js/app.js`, this report, `TASK_BOARD.md`, and `PHASE_4_PROVIDER_CHECK.md`.
 - No new dependency, database change, push, deployment, or Phase 5 transition. Frontend race fixes have code review but no automated browser regression yet.
 
+## Personal-trial email policy update
+
+- Owner removed email verification; registration/login will use email/password
+  without confirmation mail. Free services only; no paid service selected.
+- Removed verification gates from activity and voluntary-deletion SQL helpers.
+  Session validity, inactivity deadline, explicit confirmation and fresh password
+  reauthentication checks remain. Verification state is not fabricated.
+- Updated SQL regression to allow a null verification timestamp while still
+  rejecting expired/anonymous sessions. Account API/UI remains unimplemented.
+- `ACCOUNT_POLICY.md` is the current policy overriding older verification gates.
+
 ## Follow-up validation
 
 - Six automated tests pass, including rate-limit Retry-After preservation, timeout mapping, upstream HTTP errors, malformed JSON and null JSON rejection.
