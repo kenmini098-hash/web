@@ -4,12 +4,12 @@ Ngày: 14/11/2026. Phạm vi: tài liệu thiết kế trong working tree tại 
 
 ## Kết luận
 
-Bộ tài liệu đủ để chủ dự án xem xét đề xuất, nhưng **chưa đạt điều kiện đóng Giai đoạn 3**. Cần làm rõ các điểm thiết kế dưới đây và nhận quyết định phạm vi/kiến trúc từ chủ dự án. Không có bằng chứng cho phép Giai đoạn 4.
+Bộ tài liệu đã được tái nghiệm thu ngày 15/11/2026: R02/R03/R04/R05 đóng ở mức đặc tả, R01 và các lựa chọn kiến trúc còn chờ chủ dự án. **Chưa đóng Giai đoạn 3 và chưa cho phép Giai đoạn 4.** Các findings ban đầu được giữ làm lịch sử; bảng tái nghiệm thu sau sửa là trạng thái hiện hành.
 
 | Tiêu chí theo PROJECT_PLAN | Kết quả | Bằng chứng |
 | --- | --- | --- |
 | Kiến trúc, contract và mapping thống nhất với yêu cầu | Một phần | Ranh giới Express/Wikidata/PostgreSQL, ID opaque/QID, favorites và lỗi được thống nhất; scope anime-TV/bộ lọc chưa được duyệt. |
-| Schema, endpoints, fields và ownership rõ | Một phần | Schema đã có types/nullability/keys; contract có request/success shapes. Cần chốt CSRF sau đăng nhập và trường hợp entity mất nhãn Nhật. |
+| Schema, endpoints, fields và ownership rõ | Đạt ở mức đề xuất sau sửa | Schema có types/nullability/keys; contract có request/success shapes; CSRF, thiếu nhãn Nhật và recent re-authentication đã được đối chiếu lại. |
 | Security, errors, responsive và rights được đề cập | Đạt ở mức đề xuất | Có CSRF, session, Argon2id, ownership, secrets, trạng thái UI, responsive/accessibility, không video/ảnh chưa đủ quyền. Không phải chứng nhận bảo mật runtime. |
 | Trình tradeoffs và người dùng duyệt phase exit | Chờ phê duyệt | `PHASE_3_DESIGN_REVIEW.md`, mục Open decisions. |
 | Cho phép Giai đoạn 4 riêng | Chưa có | `PROJECT_PLAN.md`, tiêu chí Phase 3. |
@@ -41,6 +41,20 @@ Các phần đã đạt ở mức đề xuất vẫn giữ nguyên: phân tách 
 
 PostgreSQL, session auth, account verification/recovery/deletion, token lifetime, email service, cache, image policy và bộ lọc cần phê duyệt như đã liệt kê trong bản thiết kế. Browser/performance/backup targets cần chốt hoặc ghi rõ mốc chốt trước kiểm thử/phát hành. Chưa có restore thực tế ở Phase 3 không tự động là lỗi: giai đoạn này chỉ yêu cầu nguyên tắc và kế hoạch, bằng chứng thực thi thuộc giai đoạn sau.
 
+### Tái nghiệm thu sau sửa ngày 15/11/2026
+
+Đây là kết quả cập nhật sau bảng kiểm tra trước đó; các findings lịch sử phía trên được giữ để truy vết.
+
+| Finding | Kết quả đối chiếu sửa | Bằng chứng hiện hành |
+| --- | --- | --- |
+| R01 | Còn mở — quyết định chủ dự án | Anime-TV và bộ lọc một giá trị vẫn là đề xuất thu hẹp phạm vi. |
+| R02 | Đóng ở mức đặc tả | HMAC từ raw session ID, không lưu CSRF hash, reissue cùng session, session rotation làm token cũ hết hiệu lực, lỗi 403 CSRF_INVALID không replay. Contract dòng 20 bảo toàn user binding/expiry của session đăng nhập; dòng 26 phân biệt anonymous/expired login với re-auth của authenticated session. |
+| R03 | Đóng ở mức đặc tả | API contract, mapping, architecture và UI đều quy định detail thiếu nhãn Nhật trả 404; favorite giữ reference, unavailable/metadata null; không nhầm lỗi provider. |
+| R04 | Đóng | Đã đọc lại PROJECT_PLAN dòng 29, REQUIREMENTS dòng 20 và Handoff của PHASE_3_DESIGN_REVIEW: đều ghi GPT-6 Astra. |
+| R05 | Đóng ở mức đặc tả | sessions có authenticated_at, chỉ set sau xác minh mật khẩu; DELETE yêu cầu confirm:true và cửa sổ đề xuất 5 phút; 403 REAUTH_REQUIRED dẫn login cùng tài khoản, lấy CSRF mới, xác nhận lại; không dùng last_seen hay tự replay. |
+
+Đóng ở mức đặc tả không phải kiểm thử runtime hoặc phê duyệt kiến trúc. Toàn Giai đoạn 3 vẫn chờ chủ dự án duyệt các lựa chọn và phạm vi.
+
 ## Bàn giao
 
 - Giai đoạn: 3 — nghiệm thu thiết kế.
@@ -50,6 +64,6 @@ PostgreSQL, session auth, account verification/recovery/deletion, token lifetime
 - File tạo: `PHASE_3_ACCEPTANCE.md`; không sửa tài liệu thiết kế/quản trị khác.
 - Kiểm thử: rà soát tài liệu; không chạy ứng dụng, không gọi provider, không commit/push.
 - Bằng chứng: tên file/mục/dòng tại từng finding; số dòng có thể đổi nếu working tree được cập nhật đồng thời.
-- Tồn đọng: R02/R03/R05 làm rõ thiết kế, R04 sửa attribution, R01 và lựa chọn khác chờ chủ dự án.
-- Đề xuất: xử lý findings rồi trình lại bộ thiết kế để quyết định nghiệm thu.
+- Tồn đọng hiện hành: R01 và các lựa chọn phạm vi/kiến trúc/tài khoản/vận hành chờ chủ dự án; R02/R03/R04/R05 đã đóng ở mức tài liệu.
+- Đề xuất: trình bộ thiết kế đã sửa để chủ dự án quyết định; kiểm chứng runtime ở các giai đoạn triển khai/kiểm thử sau khi được phép.
 - Trạng thái: Chưa đạt phase exit; chưa cho phép Phase 4.
