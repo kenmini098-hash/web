@@ -46,6 +46,15 @@ For account deletion, a verified current account must re-enter its password thro
 
 Social login would avoid password handling but introduces an external identity provider, account linking and recovery decisions; no such provider is selected. Persistent server-side sessions are proposed over stateless JWTs because logout/revocation and account deletion are central to the small MVP.
 
+### Approved lifecycle amendment — 2026-11-15
+
+The owner approved indexed `users.last_active_at`, initialized at creation and
+renewed by successful login/authenticated API use. After 168 hours of inactivity,
+delete the account and cascade dependent data. Voluntary deletion retains the
+password reauthentication and confirmation checks above. This supersedes earlier
+pending-approval wording for inactivity/deletion. SQL helpers and the cleanup
+CLI are implemented; account routes/UI and production scheduling are not enabled.
+
 ## 5. UI and failure behavior
 
 - Browse/search results use responsive cards/list, with mobile single-column layout and desktop wider grid. Do not label browse as popular or ranked. Detail shows only available verified fields and no player/watch section.

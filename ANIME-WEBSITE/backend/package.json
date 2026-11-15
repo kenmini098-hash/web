@@ -6,9 +6,15 @@
   "scripts": {
     "start": "node sever.js",
     "dev": "node --watch sever.js",
-    "test": "node --test"
+    "test": "node --test",
+    "db:migrate": "node scripts/accounts.js migrate",
+    "accounts:cleanup": "node scripts/accounts.js cleanup"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16"
   }
 }

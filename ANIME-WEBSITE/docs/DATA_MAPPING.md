@@ -56,6 +56,20 @@ Favorites store no title/description/image. If current metadata lookup definitiv
 5. Favorites `PUT` validates opaque ID -> QID, verifies it resolves to an allowlisted anime-TV or anime-film entity with a Japanese label, then inserts under authenticated user. Unique conflict is idempotent success. `DELETE` scopes both user ID and QID. Listing orders by `(created_at DESC,provider,provider_id)` and resolves metadata server-side.
 6. Account deletion requires a verified current user, explicit confirmation, and `authenticated_at` no older than a configurable five-minute window (proposed default). If expired/missing, return `403 REAUTH_REQUIRED`; user logs in again as the same account and must confirm deletion again. Never infer freshness from `last_seen_at` or auto-replay the deletion. Then cascade sessions/favorites/tokens under an owner-approved retention policy. Export/retention timelines remain open.
 
+## Approved lifecycle amendment — 2026-11-15
+
+The owner approved the activity definition and schema change: add indexed
+`users.last_active_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP`.
+Creation starts the clock; successful login or authenticated API use renews it.
+Accounts have no fixed lifetime, but after 168 hours without activity they and
+their dependent sessions, favorites and auth tokens are deleted. Users may also
+delete their accounts after password reauthentication and explicit confirmation.
+This supersedes the pending-approval wording below for these specific decisions.
+
+The SQL migration, session-scoped lifecycle helpers and bounded cleanup command
+are implemented. Account HTTP/UI integration, email and remaining token policy
+decisions are still pending. No production cleanup schedule is enabled.
+
 ## 5. Cache, retention, backup
 
 The owner selected no catalog cache. Do not persist or cache catalog data. Keep user account/session/favorite data retention minimal and define expiry/deletion before production. Target encrypted nightly PostgreSQL backups with seven daily restore points, RPO <= 24 hours, RTO <= 8 hours, and quarterly plus pre-release isolated restore rehearsals. Restrict access and record achieved recovery time/point. The host must support these targets; vendor selection is deferred to implementation planning.

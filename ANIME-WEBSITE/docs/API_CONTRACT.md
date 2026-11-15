@@ -61,6 +61,15 @@ All successful `GET` responses return `200`. The endpoints below use the shared 
 
 These account payloads and status codes complete the Phase 3 proposal; registration, verification, recovery, deletion, and retention behavior still require owner approval. All error responses use the error envelope below. Invalid or expired one-time tokens use `400 INVALID_REQUEST`; no token value is echoed.
 
+## Approved lifecycle amendment — 2026-11-15
+
+The owner approved activity tracking and seven-day inactivity deletion using
+`users.last_active_at`, initialized at creation and renewed on successful login
+or authenticated API use. Voluntary deletion retains explicit confirmation,
+CSRF and password reauthentication within five minutes. Account deletion cascades
+favorites, sessions and auth tokens. The database layer is implemented; account
+HTTP routes are not exposed yet. Remaining email/token policy choices are open.
+
 ## Errors and client behavior
 
 Errors use `{ "error": { "code": "...", "message": "...", "requestId": "..." } }`. UI supplies Vietnamese copy; API never returns stack traces, SQL, raw upstream body, secrets, or credentials.

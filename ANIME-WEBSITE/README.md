@@ -18,3 +18,32 @@ process restarts and instances.
 
 `.env.example` documents the supported environment variables; set them in the
 shell or deployment environment. This starter does not load `.env` files.
+
+## Account database foundation
+
+The approved lifecycle is no fixed end date, voluntary deletion, and deletion
+after 168 hours without authenticated activity. Account API/UI and email flows
+are not connected yet; the database functions alone do not enable registration.
+
+Set `DATABASE_URL` to a dedicated PostgreSQL database through the environment,
+then run these commands from `backend`:
+
+```text
+npm run db:migrate
+npm run accounts:cleanup
+npm run accounts:cleanup -- --apply
+```
+
+The migration is transactional and versioned. Cleanup defaults to a count-only
+preview; `--apply` deletes up to 100 inactive accounts and cascades their sessions,
+favorites and tokens. Run again for remaining batches. No scheduler is installed
+or enabled by these commands. During deployment, schedule cleanup every minute
+and monitor errors/backlog; the 168-hour eligibility threshold is exact, while
+physical deletion occurs on the next successful run. Do not enable account
+registration before authenticated requests/login record activity and the cleanup
+schedule has been tested. Backups retain deleted rows until their seven-day
+rotation expires; run cleanup after a restore before reopening traffic.
+
+`npm test` uses an isolated in-memory PGlite engine for SQL lifecycle tests.
+Fixture accounts exist only in tests. This does not verify a production
+PostgreSQL connection, concurrent clients, email delivery or scheduled execution.

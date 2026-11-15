@@ -7,11 +7,11 @@ Status: **Not ready for acceptance.** This is an evidence checklist, not approva
 | Requirement | Evidence | Result |
 | --- | --- | --- |
 | Public catalog API and Vietnamese UI | Implementation report; local code | Implemented; full end-to-end verification pending |
-| Query validation and provider failure handling | Six automated tests pass | Partial verification passed |
+| Query validation, provider failure handling and SQL lifecycle | Ten automated tests pass | Partial verification passed |
 | Film year mapping | Q21697406, year 2016, HTTP 200, 8048 ms | Correct sample; exceeds application deadline |
 | TV year mapping | Q22126305/year 2013 post-fix probe | Timed out at 8 seconds; unresolved |
 | Responsive and keyboard behavior | 390px error view has no overflow; no console entries | Full viewport/browser/keyboard matrix pending |
-| Accounts, sessions, recovery and favorites | Approved schema/contract; permanent account lifetime clarified | Not implemented; remaining policies and database/mail setup pending |
+| Accounts, sessions, recovery and favorites | Approved last_active_at and inactivity deletion; SQL lifecycle tests pass | Database foundation implemented; HTTP/UI, remaining policies and database/mail setup pending |
 | Security and operational targets | Existing headers, input checks, signed catalog cursors | Authentication security, rate shaping, load and backup evidence pending |
 | Independent review and owner acceptance | Provider review found issues; corrections recorded | Final independent review and owner acceptance pending |
 

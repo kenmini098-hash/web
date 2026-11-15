@@ -32,6 +32,17 @@ Keep Phase 4 active. Review the local code and await the designated API-agent ve
 
 **Result:** Public catalog slice implemented locally; review and provider verification pending.
 
+## Approved lifecycle foundation
+
+- Owner approved last_active_at, authenticated activity semantics and seven-day deletion.
+- Added versioned PostgreSQL migration for users, sessions, favorites and auth tokens; session-scoped activity/self-deletion helpers; bounded cleanup (100 accounts per run) with row locks and cascade deletion.
+- Added `pg` for production connectivity and `@electric-sql/pglite` only for tests. Production remains PostgreSQL.
+- `npm test`: 10 tests pass, including three SQL lifecycle subtests. Covers repeatable migration, inactivity cutoff, cascades, confirmation, fresh reauthentication, and expired/unverified/anonymous sessions. Package installation reported zero vulnerabilities.
+- Files: `backend/database.js`, `backend/account-lifecycle.js`, `backend/migrations/001_accounts.sql`, `backend/scripts/accounts.js`, `backend/test/account-lifecycle.test.js`, package files, `.env.example`, README and specification/status documents.
+- No real database connection, scheduled cleanup or account HTTP/UI integration has been verified. Multi-client race behavior and backup restoration remain untested.
+- References: [node-postgres transactions](https://node-postgres.com/features/transactions), [parameterized queries](https://node-postgres.com/features/queries), [PGlite test engine](https://pglite.dev/docs/).
+- Status: database foundation implemented locally; Phase 4 is not complete.
+
 ## Corrective implementation, 2026-11-15
 
 - Bound TV/film classes inside date UNION branches, excluded deprecated date statements and media classes from genres, and rejected malformed upstream rows.

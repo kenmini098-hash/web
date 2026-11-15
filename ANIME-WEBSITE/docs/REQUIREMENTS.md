@@ -150,6 +150,16 @@ data source and the architecture/API contract approved in Phase 3.
   for the public catalog slice. Account/favorite implementation awaits account
   lifecycle decisions; the local documents have not been published to GitHub.
 
+## Approved lifecycle amendment — 2026-11-15
+
+The owner approved `last_active_at` and the implementation: activity means
+successful login or authenticated API use, starting at account creation.
+Accounts have no fixed lifetime but are deleted after 168 hours of inactivity,
+including their favorites, sessions and auth tokens. Voluntary deletion remains
+available after password reauthentication and confirmation. This supersedes
+earlier pending-approval wording for these decisions. Verification, recovery,
+export, session/token lifetimes, email and abuse-control choices remain open.
+
 ## 8. Open decisions for the product owner
 
 1. Before account/favorite implementation, resolve account lifecycle policies (verification,
