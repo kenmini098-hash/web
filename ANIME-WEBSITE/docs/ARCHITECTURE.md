@@ -7,6 +7,8 @@
 **Current account policy:** [ACCOUNT_POLICY.md](ACCOUNT_POLICY.md) supersedes
 the email-verification requirements below. Personal-trial authentication uses
 email/password without a confirmation email; session/CSRF protections remain.
+Password recovery is excluded by owner decision; recovery mail and reset-token
+flows below are historical proposals. SMTP is not an implementation dependency.
 
 ## 1. Proposed system shape
 

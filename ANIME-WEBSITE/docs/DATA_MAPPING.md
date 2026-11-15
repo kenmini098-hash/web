@@ -5,6 +5,8 @@
 **Current account policy:** [ACCOUNT_POLICY.md](ACCOUNT_POLICY.md) supersedes
 email-verification requirements below. `email_verified_at` remains null and
 does not restrict account use. `verification_tokens` is retained but unused.
+Password recovery is excluded. `password_reset_tokens` is also retained but
+unused; the reset flow below is a historical proposal, not an implementation task.
 
 ## 1. Source mapping and safe resolution
 

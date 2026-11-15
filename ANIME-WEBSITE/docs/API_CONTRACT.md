@@ -5,7 +5,10 @@
 **Current account policy:** [ACCOUNT_POLICY.md](ACCOUNT_POLICY.md) supersedes
 email-verification gates below for the personal trial. Register/login use
 email/password without verification; `emailVerified` remains false. The
-candidate verify-email endpoint is excluded. Account routes are not yet live.
+candidate verify-email endpoint is excluded. Password recovery is also excluded:
+the candidate `/auth/password-reset` and `/auth/password-reset/confirm` routes
+below are historical proposals, not implementation targets. Account routes are
+not yet live. No email service is required for registration/login.
 
 ## Conventions and resources
 

@@ -51,6 +51,16 @@ Keep Phase 4 active. Review the local code and await the designated API-agent ve
 - Changed files: `backend/sever.js`, `backend/wikidata.js`, `backend/test/api.test.js`, `backend/test/wikidata.test.js`, `frontend/js/app.js`, this report, `TASK_BOARD.md`, and `PHASE_4_PROVIDER_CHECK.md`.
 - No new dependency, database change, push, deployment, or Phase 5 transition. Frontend race fixes have code review but no automated browser regression yet.
 
+## Password recovery scope update
+
+- Owner explicitly excluded password recovery. No reset endpoints, reset emails
+  or forgot-password UI will be implemented for this trial. SMTP and reset-token
+  lifetime decisions are no longer blockers.
+- Updated policy, contract, architecture, mapping, requirements, task board and
+  README. Existing versioned schema remains intact; reset-token table is unused.
+- Documentation-only change; existing runtime has no password recovery routes.
+  No tests rerun because runtime behavior and schema were not changed.
+
 ## Personal-trial email policy update
 
 - Owner removed email verification; registration/login will use email/password

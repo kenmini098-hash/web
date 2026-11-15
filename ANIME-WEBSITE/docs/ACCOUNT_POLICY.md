@@ -15,12 +15,17 @@ requirements in the Phase 3 proposals for this personal trial.
 - Accounts have no fixed end date. Delete after 168 hours without successful
   login/authenticated API use, measured from creation initially. Voluntary
   deletion requires confirmation and password reauthentication within 5 minutes.
-- No paid API or email service is selected or required for basic registration
-  and login. No SMTP is required solely for verification. Recovery by email is
-  not operational without an approved delivery configuration; do not simulate
-  successful mail delivery or return recovery tokens to unauthenticated users.
+- No paid API or email service is selected or required for registration/login.
+- The owner explicitly excluded password recovery. Do not implement reset
+  requests, reset-token confirmation, recovery mail or a "forgot password" UI.
+  No SMTP service or reset-token lifetime decision is needed for this trial.
+  Existing `password_reset_tokens` schema is retained but unused; do not modify
+  an already versioned migration or create tokens. Password changes while signed
+  in and knowing the current password are separate from recovery.
+- A forgotten password cannot be recovered. The account remains subject to the
+  seven-day inactivity deletion policy; do not bypass authentication by email.
 
 Remaining implementation: registration/login/session/favorites API and UI,
-database configuration and scheduling. Session lifetime, recovery/export and
+database configuration and scheduling. Session lifetime, export and
 abuse-control choices remain to be settled; removing email verification does
 not mean removing authentication or authorizing paid services.

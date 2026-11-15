@@ -163,7 +163,8 @@ export, session/token lifetimes, email and abuse-control choices remain open.
 **Personal-trial clarification:** The owner removed email verification and
 specified free APIs for this personal experiment. Email/password authentication
 remains. See [ACCOUNT_POLICY.md](ACCOUNT_POLICY.md); verification and SMTP for
-verification are no longer blockers. Recovery email is a separate feature.
+verification are no longer blockers. The owner also excluded password recovery;
+reset flows, reset-token lifetimes and email delivery are no longer requirements.
 
 ## 8. Open decisions for the product owner
 

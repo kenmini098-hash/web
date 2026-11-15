@@ -25,6 +25,8 @@ Email verification is not required. The planned login uses email and password;
 email ownership is not claimed. SMTP is unnecessary for registration/login.
 See [account policy](docs/ACCOUNT_POLICY.md). Account routes/UI are still pending;
 removing verification does not make the whole account feature operational.
+Password recovery is excluded by owner decision: no reset email or forgot-password
+screen. SMTP is not needed for this trial. A forgotten password cannot be recovered.
 
 ## Account database foundation
 
