@@ -32,6 +32,8 @@ const state = {
   controller: null,
   retryList: null,
   detailId: null,
+  detailController: null,
+  criteria: null,
 };
 
 function errorText(error) {
@@ -137,27 +139,35 @@ function renderDetail(anime) {
 }
 
 async function openDetail(id) {
+  state.detailController?.abort();
+  const controller = new AbortController();
+  state.detailController = controller;
   state.detailId = id;
-  dialog.showModal();
+  if (!dialog.open) dialog.showModal();
   detailTitle.textContent = "Đang tải chi tiết…";
   detailDescription.textContent = "";
   detailFields.replaceChildren();
   sourceLink.hidden = true;
   retryDetailButton.hidden = true;
   try {
-    const detail = await getAnimeDetail(id);
+    const detail = await getAnimeDetail(id, controller.signal);
+    if (controller.signal.aborted || state.detailController !== controller) return;
     renderDetail(detail);
     sourceLink.hidden = false;
   } catch (error) {
+    if (error.name === "AbortError" || controller.signal.aborted || state.detailController !== controller) return;
     detailTitle.textContent = "Không thể tải chi tiết";
     detailDescription.textContent = errorText(error);
     retryDetailButton.hidden = false;
+  } finally {
+    if (state.detailController === controller) state.detailController = null;
   }
 }
 
-async function ensureFacets(q, signal) {
+async function ensureFacets(q, controller) {
   if (state.facetsForQuery === q) return state.facets;
-  const base = await getAnime({ q, filters: {}, signal });
+  const base = await getAnime({ q, filters: {}, signal: controller.signal });
+  if (controller.signal.aborted || state.controller !== controller) throw new DOMException("Aborted", "AbortError");
   state.facets = base.facets.genres;
   state.facetsForQuery = q;
   return state.facets;
@@ -178,7 +188,7 @@ async function loadFirstPage() {
 
   try {
     if ((filters.entityType || filters.genreId || filters.year) && state.facetsForQuery !== q) {
-      const genres = await ensureFacets(q, controller.signal);
+      const genres = await ensureFacets(q, controller);
       if (selectedGenre && !genres.some(genre => genre.id === selectedGenre)) {
         genreInput.value = "";
         filters.genreId = null;
@@ -188,6 +198,7 @@ async function loadFirstPage() {
     }
 
     const result = await getAnime({ q, filters, signal: controller.signal });
+    if (controller.signal.aborted || state.controller !== controller) return;
     if (!filters.entityType && !filters.genreId && !filters.year) {
       state.facets = result.facets.genres;
       state.facetsForQuery = q;
@@ -195,6 +206,7 @@ async function loadFirstPage() {
     updateGenreOptions(state.facets, filters.genreId || "");
     state.items = result.items;
     state.cursor = result.page.nextCursor;
+    state.criteria = { q, filters: { ...filters } };
     renderCards(state.items);
     moreButton.hidden = !state.cursor;
     if (notice) setStatus(notice);
@@ -203,7 +215,7 @@ async function loadFirstPage() {
     initialGenreId = "";
     writeUrl(q, filters);
   } catch (error) {
-    if (error.name !== "AbortError") {
+    if (error.name !== "AbortError" && !controller.signal.aborted && state.controller === controller) {
       state.retryList = loadFirstPage;
       retryButton.hidden = false;
       setStatus(errorText(error), true);
@@ -217,33 +229,38 @@ async function loadFirstPage() {
 }
 
 async function loadMore() {
-  if (!state.cursor || state.controller) return;
+  if (!state.cursor || !state.criteria || state.controller) return;
   const controller = new AbortController();
   state.controller = controller;
+  const { q, filters } = state.criteria;
+  const cursor = state.cursor;
   moreButton.disabled = true;
   retryButton.hidden = true;
   setStatus("Đang tải thêm…");
   try {
     const result = await getAnime({
-      q: queryInput.value.trim(),
-      filters: currentFilters(),
-      cursor: state.cursor,
+      q,
+      filters,
+      cursor,
       signal: controller.signal,
     });
+    if (controller.signal.aborted || state.controller !== controller) return;
     state.items = [...state.items, ...result.items];
     state.cursor = result.page.nextCursor;
     renderCards(result.items, true);
     moreButton.hidden = !state.cursor;
     setStatus("");
   } catch (error) {
-    if (error.name !== "AbortError") {
+    if (error.name !== "AbortError" && !controller.signal.aborted && state.controller === controller) {
       state.retryList = loadMore;
       retryButton.hidden = false;
       setStatus(errorText(error), true);
     }
   } finally {
-    if (state.controller === controller) state.controller = null;
-    moreButton.disabled = false;
+    if (state.controller === controller) {
+      state.controller = null;
+      moreButton.disabled = false;
+    }
   }
 }
 
@@ -265,6 +282,11 @@ retryDetailButton.addEventListener("click", () => state.detailId && openDetail(s
 detailClose.addEventListener("click", () => dialog.close());
 dialog.addEventListener("click", event => {
   if (event.target === dialog) dialog.close();
+});
+dialog.addEventListener("close", () => {
+  state.detailController?.abort();
+  state.detailController = null;
+  state.detailId = null;
 });
 
 loadFirstPage();

@@ -39,7 +39,7 @@ function parseAnimeQuery(req) {
   const modeValue = readSingle(params, "mode");
   const qValue = readSingle(params, "q");
   const q = qValue === null ? null : qValue.trim();
-  if (modeValue && modeValue !== "browse") throw fail(400, "INVALID_REQUEST", "The request is invalid.");
+  if (modeValue !== null && modeValue !== "browse") throw fail(400, "INVALID_REQUEST", "The request is invalid.");
   if (modeValue === "browse" && q) throw fail(400, "INVALID_REQUEST", "The request is invalid.");
   if (qValue !== null && (Array.from(q).length < 1 || Array.from(q).length > 120)) {
     throw fail(400, "INVALID_REQUEST", "The request is invalid.");
@@ -47,11 +47,11 @@ function parseAnimeQuery(req) {
   const mode = q ? "search" : "browse";
 
   const entityType = readSingle(params, "entityType");
-  if (entityType && !["anime_tv", "anime_film"].includes(entityType)) {
+  if (entityType !== null && !["anime_tv", "anime_film"].includes(entityType)) {
     throw fail(400, "INVALID_REQUEST", "The request is invalid.");
   }
   const genreId = readSingle(params, "genreId");
-  if (genreId && !/^Q[1-9][0-9]*$/.test(genreId)) {
+  if (genreId !== null && (!/^Q[1-9][0-9]*$/.test(genreId) || ["Q63952888", "Q20650540"].includes(genreId))) {
     throw fail(400, "INVALID_REQUEST", "The request is invalid.");
   }
   const yearText = readSingle(params, "year");
@@ -60,10 +60,11 @@ function parseAnimeQuery(req) {
   }
   const limitText = readSingle(params, "limit");
   const limit = limitText === null ? 20 : Number(limitText);
-  if (!Number.isInteger(limit) || limit < 1 || limit > 20) {
+  if ((limitText !== null && !/^[0-9]+$/.test(limitText)) || !Number.isInteger(limit) || limit < 1 || limit > 20) {
     throw fail(400, "INVALID_REQUEST", "The request is invalid.");
   }
   const cursor = readSingle(params, "cursor");
+  if (cursor === "") throw fail(400, "INVALID_REQUEST", "The request is invalid.");
   return {
     mode,
     q,
@@ -105,6 +106,10 @@ app.get("/api/v1/anime/:id", async (req, res) => {
 app.use("/api", (req, res) => sendError(res, new ApiError(404, "NOT_FOUND", "Endpoint not found."), req.requestId));
 app.use(express.static(frontendPath));
 
-app.listen(port, process.env.HOST || "127.0.0.1", () => {
-  process.stdout.write(`Anime Website listening on http://${process.env.HOST || "127.0.0.1"}:${port}\n`);
-});
+if (require.main === module) {
+  app.listen(port, process.env.HOST || "127.0.0.1", () => {
+    process.stdout.write(`Anime Website listening on http://${process.env.HOST || "127.0.0.1"}:${port}\n`);
+  });
+}
+
+module.exports = app;

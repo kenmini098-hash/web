@@ -3,6 +3,7 @@ const crypto = require("node:crypto");
 const TYPE_IDS = Object.freeze({ anime_tv: "Q63952888", anime_film: "Q20650540" });
 const TYPE_NAMES = Object.fromEntries(Object.entries(TYPE_IDS).map(([name, id]) => [id, name]));
 const GENRE_TYPE_IDS = ["Q201658", "Q4178140"];
+const MEDIA_TYPE_IDS = Object.values(TYPE_IDS);
 const ACTION_API = "https://www.wikidata.org/w/api.php";
 const SPARQL_ENDPOINTS = new Set([
   "https://query.wikidata.org/sparql",
@@ -115,7 +116,7 @@ async function fetchJson(url, options, deadline) {
   let response;
   let text;
   try {
-    response = await fetch(url, { ...options, signal: AbortSignal.timeout(remaining) });
+    response = await fetch(url, { ...options, redirect: "error", signal: AbortSignal.timeout(remaining) });
     if (response.status === 429) {
       const retryAfter = response.headers.get("retry-after");
       throw new ApiError(429, "RATE_LIMITED", "The data source asked us to slow down.", retryAfter);
@@ -158,7 +159,7 @@ async function searchEntities(q, limit, continuation, deadline) {
   const body = await fetchJson(`${ACTION_API}?${params}`, {
     headers: { Accept: "application/json", "User-Agent": USER_AGENT },
   }, deadline);
-  if (body.error || !Array.isArray(body.search)) {
+  if (body.error || !Array.isArray(body.search) || !body.search.every(item => item && typeof item.id === "string")) {
     throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source returned an invalid response.");
   }
 
@@ -181,6 +182,7 @@ function buildSparql({ candidateIds, filters, after, limit }) {
         ?item wdt:P136 wd:${filters.genreId} .
         wd:${filters.genreId} wdt:P31 ?filterGenreType ; rdfs:label ?filterGenreLabel .
         VALUES ?filterGenreType { ${GENRE_TYPE_IDS.map(id => `wd:${id}`).join(" ")} }
+        FILTER(wd:${filters.genreId} NOT IN (${MEDIA_TYPE_IDS.map(id => `wd:${id}`).join(", ")}))
         FILTER(LANG(?filterGenreLabel) = "ja")
       }` : "";
   const yearHaving = filters.year ? `HAVING (MIN(?yearCandidate) = ${filters.year})` : "";
@@ -219,18 +221,20 @@ WHERE {
       }
       OPTIONAL {
         {
-          FILTER(?type = wd:${TYPE_IDS.anime_tv})
+          VALUES ?type { wd:${TYPE_IDS.anime_tv} }
           ?item p:P580 ?dateStatement .
           ?dateStatement psv:P580 ?timeNode .
           ?timeNode wikibase:timeValue ?dateValue ; wikibase:timePrecision ?precision .
         }
         UNION
         {
-          FILTER(?type = wd:${TYPE_IDS.anime_film})
+          VALUES ?type { wd:${TYPE_IDS.anime_film} }
           ?item p:P577 ?dateStatement .
           ?dateStatement ps:P577 ?dateValue ; pq:P291 wd:Q17 ; psv:P577 ?timeNode .
           ?timeNode wikibase:timeValue ?dateValue ; wikibase:timePrecision ?precision .
         }
+        ?dateStatement wikibase:rank ?dateRank .
+        FILTER(?dateRank != wikibase:DeprecatedRank)
         FILTER(?precision >= 9)
         BIND(YEAR(?dateValue) AS ?yearCandidate)
       }
@@ -245,6 +249,7 @@ WHERE {
     ?item wdt:P136 ?genre .
     ?genre wdt:P31 ?genreType ; rdfs:label ?genreLabel .
     VALUES ?genreType { ${GENRE_TYPE_IDS.map(id => `wd:${id}`).join(" ")} }
+    FILTER(?genre NOT IN (${MEDIA_TYPE_IDS.map(id => `wd:${id}`).join(", ")}))
     FILTER(LANG(?genreLabel) = "ja")
   }
 }
@@ -262,7 +267,7 @@ async function queryRecords({ candidateIds, filters, after, limit, deadline }) {
     },
     body: new URLSearchParams({ query: sparql, format: "json" }).toString(),
   }, deadline);
-  if (!Array.isArray(body.results?.bindings)) {
+  if (!Array.isArray(body.results?.bindings) || !body.results.bindings.every(row => row && typeof row === "object")) {
     throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source returned an invalid response.");
   }
   return body.results.bindings;
@@ -434,4 +439,4 @@ async function getAnimeDetail(animeId) {
   return { ...summary, releaseDate: null, episodeCount: null };
 }
 
-module.exports = { ApiError, listAnime, getAnimeDetail };
+module.exports = { ApiError, listAnime, getAnimeDetail, buildSparql };

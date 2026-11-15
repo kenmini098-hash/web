@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { ApiError, listAnime } = require("../wikidata");
+const { ApiError, buildSparql, listAnime } = require("../wikidata");
 
 function binding(qid, typeId, title, year, genreId, genreLabel) {
   return {
@@ -80,6 +80,47 @@ test("search maps qualified Wikidata results, emits facets, and signs continuati
     await assert.rejects(
       listAnime({ mode: "search", q: "別の検索", filters: {}, limit: 20, cursor: first.page.nextCursor }),
       error => error instanceof ApiError && error.status === 400,
+    );
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("date unions bind each anime class and genre facets exclude media classes", () => {
+  const query = buildSparql({
+    candidateIds: ["Q22126305"],
+    filters: { year: 2013, genreId: "Q201658" },
+    after: null,
+    limit: 20,
+  });
+  assert.match(query, /VALUES \?type \{ wd:Q63952888 \}/);
+  assert.match(query, /VALUES \?type \{ wd:Q20650540 \}/);
+  assert.match(query, /FILTER\(\?dateRank != wikibase:DeprecatedRank\)/);
+  assert.doesNotMatch(query, /FILTER\(\?type = wd:Q(?:63952888|20650540)\)/);
+  assert.match(query, /FILTER\(\?genre NOT IN \(wd:Q63952888, wd:Q20650540\)\)/);
+  assert.match(query, /FILTER\(wd:Q201658 NOT IN \(wd:Q63952888, wd:Q20650540\)\)/);
+});
+
+test("malformed Wikidata response rows become provider errors", async () => {
+  const originalFetch = global.fetch;
+  global.fetch = async () => Response.json({ results: { bindings: [null] } });
+  try {
+    await assert.rejects(
+      listAnime({ mode: "browse", q: null, filters: {}, limit: 1, cursor: null }),
+      error => error instanceof ApiError && error.status === 502 && error.code === "PROVIDER_UNAVAILABLE",
+    );
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("malformed Action API search rows become provider errors", async () => {
+  const originalFetch = global.fetch;
+  global.fetch = async () => Response.json({ search: [null] });
+  try {
+    await assert.rejects(
+      listAnime({ mode: "search", q: "anime", filters: {}, limit: 1, cursor: null }),
+      error => error instanceof ApiError && error.status === 502 && error.code === "PROVIDER_UNAVAILABLE",
     );
   } finally {
     global.fetch = originalFetch;
