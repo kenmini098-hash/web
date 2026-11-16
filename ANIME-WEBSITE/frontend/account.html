@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tài khoản — Anime Atlas</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="stylesheet" href="/css/account.css">
+  <script type="module" src="/js/account.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+  <header class="site-header"><a class="brand" href="/">ANIME<span>ATLAS</span></a><a href="/">Tra cứu anime</a></header>
+  <main id="main-content" class="page-shell">
+    <h1>Tài khoản và yêu thích</h1>
+    <p>Không cần xác minh email. Không có khôi phục mật khẩu. Tài khoản và yêu thích sẽ bị xóa sau 7 ngày không hoạt động.</p>
+    <p id="account-status" role="status" aria-live="polite"></p>
+    <button id="retry-account" class="button" type="button">Kiểm tra lại phiên</button>
+    <form id="login-form" class="search-panel" hidden>
+      <h2>Đăng nhập hoặc tạo tài khoản</h2>
+      <label>Email<input id="email" type="email" autocomplete="username" maxlength="254" required></label>
+      <label>Mật khẩu (ít nhất 12 ký tự)<input id="password" type="password" autocomplete="current-password" minlength="12" maxlength="128" required></label>
+      <div class="form-actions">
+        <button class="button button-primary" type="submit" value="login">Đăng nhập</button>
+        <button class="button" type="submit" value="register">Tạo tài khoản</button>
+      </div>
+    </form>
+    <section id="signed-in" hidden>
+      <p>Đang đăng nhập: <strong id="current-email"></strong></p>
+      <div class="form-actions">
+        <button id="logout" class="button" type="button">Đăng xuất</button>
+        <a class="button" href="/api/v1/me/export" download>Xuất dữ liệu JSON</a>
+      </div>
+      <section aria-labelledby="favorites-heading">
+        <h2 id="favorites-heading">Anime yêu thích</h2>
+        <button id="reload-favorites" class="button" type="button">Tải lại yêu thích</button>
+        <p id="favorite-status" role="status" aria-live="polite"></p>
+        <ul id="favorites"></ul>
+        <button id="more-favorites" class="button" type="button" hidden>Tải thêm</button>
+      </section>
+      <form id="password-form" class="search-panel">
+        <h2>Đổi mật khẩu</h2>
+        <label>Mật khẩu hiện tại<input name="currentPassword" type="password" autocomplete="current-password" minlength="12" maxlength="128" required></label>
+        <label>Mật khẩu mới<input name="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label>
+        <button class="button" type="submit">Đổi mật khẩu và đăng xuất các phiên khác</button>
+      </form>
+      <section class="search-panel" aria-labelledby="delete-heading">
+        <h2 id="delete-heading">Xóa tài khoản</h2>
+        <p>Tài khoản và danh sách yêu thích sẽ bị xóa. Hãy xuất dữ liệu trước nếu bạn cần giữ lại.</p>
+        <form id="reauth-form">
+          <label>Nhập lại mật khẩu<input name="password" type="password" autocomplete="current-password" minlength="12" maxlength="128" required></label>
+          <button class="button" type="submit">Bước 1: Xác thực lại</button>
+        </form>
+        <form id="delete-form">
+          <label class="confirm-delete"><input id="confirm-delete" type="checkbox" required> Tôi xác nhận xóa tài khoản và yêu thích.</label>
+          <button class="button" type="submit">Bước 2: Xóa tài khoản</button>
+        </form>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

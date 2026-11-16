@@ -99,6 +99,7 @@ test("date unions bind each anime class and genre facets exclude media classes",
   assert.doesNotMatch(query, /FILTER\(\?type = wd:Q(?:63952888|20650540)\)/);
   assert.match(query, /FILTER\(\?genre NOT IN \(wd:Q63952888, wd:Q20650540\)\)/);
   assert.match(query, /FILTER\(wd:Q201658 NOT IN \(wd:Q63952888, wd:Q20650540\)\)/);
+  assert.doesNotMatch(query, /SELECT DISTINCT/);
 });
 
 test("malformed Wikidata response rows become provider errors", async () => {
@@ -133,6 +134,7 @@ test("provider failures preserve rate limits and distinguish timeouts from inval
     [() => new Response("", { status: 429, headers: { "Retry-After": "30" } }), 429, "RATE_LIMITED", "30"],
     [() => { throw new DOMException("Timed out", "TimeoutError"); }, 504, "PROVIDER_TIMEOUT", null],
     [() => new Response("not json"), 502, "PROVIDER_UNAVAILABLE", null],
+    [() => new Response("x".repeat(2_000_001)), 502, "PROVIDER_UNAVAILABLE", null],
     [() => Response.json(null), 502, "PROVIDER_UNAVAILABLE", null],
     [() => new Response("", { status: 503 }), 502, "PROVIDER_UNAVAILABLE", null],
   ];
@@ -147,4 +149,19 @@ test("provider failures preserve rate limits and distinguish timeouts from inval
   } finally {
     global.fetch = originalFetch;
   }
+});
+
+test("provider concurrency is bounded and capacity is released", async () => {
+  const originalFetch = global.fetch;
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  global.fetch = async () => { await gate; return Response.json({ results: { bindings: [] } }); };
+  const query = () => listAnime({ mode: "browse", q: null, filters: {}, limit: 1, cursor: null });
+  const first = query(), second = query();
+  try {
+    await assert.rejects(query(), error => error.status === 503 && error.retryAfter === "1");
+    release();
+    await Promise.all([first, second]);
+    assert.deepEqual((await query()).items, []);
+  } finally { release(); await Promise.allSettled([first, second]); global.fetch = originalFetch; }
 });

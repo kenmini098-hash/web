@@ -1,7 +1,21 @@
 # Phase 4 Implementation Report - Public Catalog Slice
 
 **Date:** 2026-11-15
-**Status:** In progress; not a Phase 4 exit report.
+**Status:** Account/public-catalog implementation delivered locally; conditional acceptance review. Latest evidence is below. Earlier sections are historical checkpoints, not current feature status.
+
+## Latest evidence — 2026-11-16
+
+- Implemented email/password registration/login/logout, session rotation, password change, JSON export, confirmed reauthenticated deletion, favorites add/remove/list with signed user-bound pagination, and Vietnamese account UI. No email verification or recovery routes.
+- Added Argon2id, CSRF enforcement, secure-cookie defaults, loopback-only HTTP option, body validation/limits, per-IP authentication rate limits, account response no-store, provider concurrency cap and streamed response-size limit.
+- Account activity/deletion is wired to authenticated requests and a startup/minute maintenance loop. Thirty-day authenticated sessions, one-hour anonymous sessions, twelve-character minimum passwords are the personal-trial implementation defaults.
+- Full automated suite: 17/17 passed. Separate actual PostgreSQL account HTTP run: 6/6 passed in a temporary schema. Includes cross-user isolation, CSRF, cookie flags, rate limits, signed pagination, password/session revocation and reauthentication deletion.
+- Provisioned a workspace-local PostgreSQL 18.7 cluster on 127.0.0.1:55434 and migrated a non-superuser application database. Credentials/keys/data are ignored by Git. `/healthz`, `/account.html`, `/api/v1/csrf` on port 3105 returned HTTP 200.
+- Browser on the disposable SQL preview: registration without verification, login and two-step deletion passed. Reauthentication/deletion were exercised with keyboard Enter. Widths 320/375/768/1024/1440 had no horizontal overflow; console contained no entries. This is not the full cross-browser matrix.
+- Real provider detail probes returned Q21697406/year 2016 in 2664 ms and Q22126305/year 2013 in 905 ms. General browse still hit the 8-second timeout; no full provider-integration or latency acceptance is claimed.
+- Encrypted local backup successfully restored into an isolated database and migration/table access verified. No nightly/off-machine schedule was installed; populated-data recovery and load targets still need validation.
+- GPT-6 Luna independently reviewed account backend/lifecycle/UI read-only and found no concrete blocker. It flagged process-local rate limits and runtime-dependent cleanup as operational limitations. It did not run tests or approve the whole phase.
+- Current files: `backend/accounts.js`, `sever.js`, `wikidata.js`, package files, account/provider tests, local preview/configuration/backup scripts, `frontend/account.html`, account CSS/JS, catalog entry points, configuration examples and operations/policy documents.
+- No push, paid service, public deployment or Phase 5 transition. See `PHASE_4_ACCEPTANCE_REPORT.md` and `LOCAL_OPERATIONS.md`.
 
 ## Handoff
 

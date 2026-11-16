@@ -12,6 +12,7 @@ const SPARQL_ENDPOINTS = new Set([
 const SPARQL_ENDPOINT = process.env.WIKIDATA_SPARQL_ENDPOINT || "https://query.wikidata.org/sparql";
 const USER_AGENT = process.env.WIKIDATA_USER_AGENT || "AnimeWebsite/0.4 (+https://github.com/kenmini098-hash/web)";
 const REQUEST_TIMEOUT_MS = 8000;
+let activeRequests = 0;
 const QID_PATTERN = /^Q[1-9][0-9]*$/;
 const cursorSecret = process.env.CURSOR_SIGNING_KEY
   ? Buffer.from(process.env.CURSOR_SIGNING_KEY)
@@ -112,9 +113,11 @@ function verifyCursorContext(payload, { mode, q, filters, limit }) {
 async function fetchJson(url, options, deadline) {
   const remaining = deadline - Date.now();
   if (remaining <= 0) throw new ApiError(504, "PROVIDER_TIMEOUT", "The data source timed out.");
+  if (activeRequests >= 2) throw new ApiError(503, "SERVICE_UNAVAILABLE", "Provider request capacity reached.", "1");
 
   let response;
   let text;
+  activeRequests++;
   try {
     response = await fetch(url, { ...options, redirect: "error", signal: AbortSignal.timeout(remaining) });
     if (response.status === 429) {
@@ -122,13 +125,32 @@ async function fetchJson(url, options, deadline) {
       throw new ApiError(429, "RATE_LIMITED", "The data source asked us to slow down.", retryAfter);
     }
     if (!response.ok) throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source is unavailable.");
-    text = await response.text();
+    const reader = response.body?.getReader();
+    const chunks = [];
+    let bytes = 0;
+    if (reader) {
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          bytes += value.byteLength;
+          if (bytes > 2_000_000) {
+            await reader.cancel();
+            throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source returned an oversized response.");
+          }
+          chunks.push(Buffer.from(value));
+        }
+      } finally { reader.releaseLock(); }
+    }
+    text = Buffer.concat(chunks).toString("utf8");
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (error.name === "TimeoutError" || error.name === "AbortError") {
       throw new ApiError(504, "PROVIDER_TIMEOUT", "The data source timed out.");
     }
     throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source is unavailable.");
+  } finally {
+    activeRequests--;
   }
 
   let body;
@@ -187,23 +209,7 @@ function buildSparql({ candidateIds, filters, after, limit }) {
         FILTER(LANG(?filterGenreLabel) = "ja")
       }` : "";
   const yearHaving = filters.year ? `HAVING (MIN(?yearCandidate) = ${filters.year})` : "";
-
-  return `
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX schema: <http://schema.org/>
-
-SELECT ?item ?type ?title ?description ?year ?genre ?genreLabel
-WHERE {
-  {
-    SELECT ?item ?type ?title (SAMPLE(?descriptionValue) AS ?description) (MIN(?yearCandidate) AS ?year)
-    WHERE {
+  const qualification = `
       ${candidateValues}
       ?item wdt:P31 ?type .
       VALUES ?type { ${classValues} }
@@ -215,7 +221,24 @@ WHERE {
       ${typeFilter}
       ${afterFilter}
       ?item rdfs:label ?title .
-      FILTER(LANG(?title) = "ja")
+      FILTER(LANG(?title) = "ja")`;
+  const prefixes = `
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>`;
+  return `${prefixes}
+SELECT ?item ?type ?title ?description ?year ?genre ?genreLabel
+WHERE {
+  {
+    SELECT ?item ?type ?title (SAMPLE(?descriptionValue) AS ?description) (MIN(?yearCandidate) AS ?year)
+    WHERE {
+      ${qualification}
       OPTIONAL {
         ?item schema:description ?descriptionValue .
         FILTER(LANG(?descriptionValue) = "ja")
@@ -223,6 +246,8 @@ WHERE {
       OPTIONAL {
         {
           VALUES ?type { wd:${TYPE_IDS.anime_tv} }
+          ${candidateValues}
+          ?item wdt:P31 wd:${TYPE_IDS.anime_tv} .
           ?item p:P580 ?dateStatement .
           ?dateStatement psv:P580 ?timeNode .
           ?timeNode wikibase:timeValue ?dateValue ; wikibase:timePrecision ?precision .
@@ -230,6 +255,8 @@ WHERE {
         UNION
         {
           VALUES ?type { wd:${TYPE_IDS.anime_film} }
+          ${candidateValues}
+          ?item wdt:P31 wd:${TYPE_IDS.anime_film} .
           ?item p:P577 ?dateStatement .
           ?dateStatement ps:P577 ?dateValue ; pq:P291 wd:Q17 ; psv:P577 ?timeNode .
           ?timeNode wikibase:timeValue ?dateValue ; wikibase:timePrecision ?precision .
@@ -424,10 +451,9 @@ async function listAnime({ mode, q, filters, limit, cursor }) {
   return { items, page: { limit, nextCursor }, facets: { genres: [] } };
 }
 
-async function getAnimeDetail(animeId) {
+async function getAnimeDetail(animeId, deadline = Date.now() + REQUEST_TIMEOUT_MS) {
   const qid = decodeAnimeId(animeId);
   if (!qid) return null;
-  const deadline = Date.now() + REQUEST_TIMEOUT_MS;
   const bindings = await queryRecords({
     candidateIds: [qid],
     filters: normalizeFilters({}),

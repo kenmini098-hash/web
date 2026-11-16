@@ -8,7 +8,14 @@ email/password without verification; `emailVerified` remains false. The
 candidate verify-email endpoint is excluded. Password recovery is also excluded:
 the candidate `/auth/password-reset` and `/auth/password-reset/confirm` routes
 below are historical proposals, not implementation targets. Account routes are
-not yet live. No email service is required for registration/login.
+implemented with PostgreSQL and available on the local trial. No email service is required for registration/login.
+
+Current implementation defaults: authenticated session 30 days, anonymous session
+one hour, passwords at least 12 characters and at most 256 UTF-8 bytes, and ten
+auth requests per IP per 15 minutes. `GET /api/v1/me/export` returns a JSON
+download of the authenticated user's account fields and favorite references,
+without password hashes or session/token secrets. These supersede earlier
+pending-account implementation wording below.
 
 ## Conventions and resources
 

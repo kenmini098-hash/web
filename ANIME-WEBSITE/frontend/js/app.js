@@ -1,4 +1,5 @@
 import { ApiError, getAnime, getAnimeDetail } from "./api.js";
+import { accountRequest, accountError } from "./account-api.js";
 
 const form = document.querySelector("#search-form");
 const queryInput = document.querySelector("#query");
@@ -139,6 +140,8 @@ function renderDetail(anime) {
 }
 
 async function openDetail(id) {
+  document.querySelector("#save-favorite").hidden = true;
+  document.querySelector("#favorite-feedback").textContent = "";
   state.detailController?.abort();
   const controller = new AbortController();
   state.detailController = controller;
@@ -153,6 +156,7 @@ async function openDetail(id) {
     const detail = await getAnimeDetail(id, controller.signal);
     if (controller.signal.aborted || state.detailController !== controller) return;
     renderDetail(detail);
+    document.querySelector("#save-favorite").hidden = false;
     sourceLink.hidden = false;
   } catch (error) {
     if (error.name === "AbortError" || controller.signal.aborted || state.detailController !== controller) return;
@@ -289,4 +293,19 @@ dialog.addEventListener("close", () => {
   state.detailId = null;
 });
 
+document.querySelector("#save-favorite").addEventListener("click", async event => {
+  const id = state.detailId;
+  if (!id) return;
+  event.target.disabled = true;
+  try {
+    await accountRequest(`/me/favorites/${encodeURIComponent(id)}`, "PUT");
+    if (state.detailId === id) document.querySelector("#favorite-feedback").textContent = "Đã lưu yêu thích.";
+  } catch (error) {
+    if (state.detailId !== id) return;
+    if (error.code === "AUTH_REQUIRED") location.assign(`/account.html?next=${encodeURIComponent(id)}`);
+    else document.querySelector("#favorite-feedback").textContent = accountError(error);
+  } finally { event.target.disabled = false; }
+});
 loadFirstPage();
+const requestedAnime = params.get("anime");
+if (requestedAnime && /^[A-Za-z0-9_-]{1,80}$/.test(requestedAnime)) openDetail(requestedAnime);

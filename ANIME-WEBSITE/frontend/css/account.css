@@ -1,0 +1,11 @@
+#account-status, #favorite-status { min-height: 1.5em; overflow-wrap: anywhere; }
+#signed-in > section, #signed-in > form, #login-form { margin-top: 2rem; }
+.search-panel label { display: grid; gap: .5rem; margin-bottom: 1rem; }
+.search-panel button { margin-top: .5rem; }
+#favorites { padding-left: 1.25rem; }
+#favorites li { margin: 1rem 0; overflow-wrap: anywhere; }
+#favorites button { margin-left: .75rem; }
+.search-panel .confirm-delete { display: flex; align-items: center; }
+.confirm-delete input { width: auto; }
+#current-email { overflow-wrap: anywhere; }
+[hidden] { display: none !important; }

@@ -25,7 +25,17 @@ requirements in the Phase 3 proposals for this personal trial.
 - A forgotten password cannot be recovered. The account remains subject to the
   seven-day inactivity deletion policy; do not bypass authentication by email.
 
-Remaining implementation: registration/login/session/favorites API and UI,
-database configuration and scheduling. Session lifetime, export and
-abuse-control choices remain to be settled; removing email verification does
-not mean removing authentication or authorizing paid services.
+## Implemented personal-trial defaults
+
+Registration/login/session/favorites API and UI, password change, JSON export
+and voluntary deletion are implemented. Following the owner's instruction to
+finish the trial, implementation defaults are 30-day authenticated sessions,
+one-hour anonymous sessions, passwords of 12 characters minimum/256 UTF-8 bytes
+maximum, and 10 authentication requests per IP per 15 minutes. Account routes
+also have a 120-request/minute/IP limit. These single-process limits need review
+before multi-instance deployment. No paid service or email delivery is required.
+
+The running application performs inactive-account cleanup at startup and every
+minute (100 accounts/run), along with expired-session cleanup. No operating-system
+service is installed. JSON export includes only account fields and favorite
+references, not password hashes, session IDs, signing keys or tokens.
