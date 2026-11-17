@@ -11,7 +11,7 @@ const SPARQL_ENDPOINTS = new Set([
 ]);
 const SPARQL_ENDPOINT = process.env.WIKIDATA_SPARQL_ENDPOINT || "https://query.wikidata.org/sparql";
 const USER_AGENT = process.env.WIKIDATA_USER_AGENT || "AnimeWebsite/0.4 (+https://github.com/kenmini098-hash/web)";
-const REQUEST_TIMEOUT_MS = 8000;
+const REQUEST_TIMEOUT_MS = 20000;
 let activeRequests = 0;
 const QID_PATTERN = /^Q[1-9][0-9]*$/;
 const cursorSecret = process.env.CURSOR_SIGNING_KEY
@@ -174,9 +174,8 @@ async function searchEntities(q, limit, continuation, deadline) {
     limit: String(limit),
     format: "json",
   });
-  if (continuation?.continueToken) params.set("continue", continuation.continueToken);
   if (continuation?.searchContinue !== undefined) {
-    params.set("search-continue", String(continuation.searchContinue));
+    params.set("continue", String(continuation.searchContinue));
   }
 
   const body = await fetchJson(`${ACTION_API}?${params}`, {
@@ -187,18 +186,20 @@ async function searchEntities(q, limit, continuation, deadline) {
   }
 
   const ids = body.search.map(item => item.id).filter(id => QID_PATTERN.test(id || ""));
-  const next = body.continue && body.continue["search-continue"] !== undefined
-    ? { continueToken: body.continue.continue || "-||", searchContinue: body.continue["search-continue"] }
-    : null;
+  const offset = body["search-continue"];
+  if (offset !== undefined && (!Number.isSafeInteger(offset) || offset < 0 || offset <= (continuation?.searchContinue ?? -1))) {
+    throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source returned an invalid continuation.");
+  }
+  const next = offset === undefined ? null : { searchContinue: offset };
   return { ids, next };
 }
 
-function buildSparql({ candidateIds, filters, after, limit }) {
+function buildSparql({ candidateIds, filters, after, limit, idsOnly = false }) {
   const classValues = Object.values(TYPE_IDS).map(id => `wd:${id}`).join(" ");
   const candidateValues = candidateIds?.length
     ? `VALUES ?item { ${candidateIds.map(id => `wd:${id}`).join(" ")} }`
     : "";
-  const afterFilter = after ? `FILTER(?item > wd:${after})` : "";
+  const afterFilter = after ? `FILTER(STR(?item) > STR(wd:${after}))` : "";
   const typeFilter = filters.entityType ? `FILTER(?type = wd:${TYPE_IDS[filters.entityType]})` : "";
   const genreFilter = filters.genreId ? `
       FILTER EXISTS {
@@ -211,12 +212,10 @@ function buildSparql({ candidateIds, filters, after, limit }) {
   const yearHaving = filters.year ? `HAVING (MIN(?yearCandidate) = ${filters.year})` : "";
   const qualification = `
       ${candidateValues}
-      ?item wdt:P31 ?type .
       VALUES ?type { ${classValues} }
+      ?item wdt:P31 ?type .
       FILTER NOT EXISTS {
-        ?item wdt:P31 ?otherType .
-        VALUES ?otherType { ${classValues} }
-        FILTER(?otherType != ?type)
+        ?item wdt:P31 wd:${TYPE_IDS.anime_tv}, wd:${TYPE_IDS.anime_film} .
       }
       ${typeFilter}
       ${afterFilter}
@@ -232,6 +231,11 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX schema: <http://schema.org/>`;
+  if (idsOnly) {
+    return `${prefixes}
+SELECT DISTINCT ?item WHERE { ${qualification} ${genreFilter} }
+ORDER BY STR(?item) LIMIT ${limit}`;
+  }
   return `${prefixes}
 SELECT ?item ?type ?title ?description ?year ?genre ?genreLabel
 WHERE {
@@ -270,7 +274,7 @@ WHERE {
     }
     GROUP BY ?item ?type ?title
     ${yearHaving}
-    ORDER BY ?item
+    ORDER BY STR(?item)
     LIMIT ${limit}
   }
   OPTIONAL {
@@ -281,11 +285,21 @@ WHERE {
     FILTER(LANG(?genreLabel) = "ja")
   }
 }
-ORDER BY ?item ?genreLabel`;
+ORDER BY STR(?item) ?genreLabel`;
 }
 
 async function queryRecords({ candidateIds, filters, after, limit, deadline }) {
-  const sparql = buildSparql({ candidateIds, filters, after, limit });
+  // Without a year filter, qualify/page first and enrich only those IDs, under the same deadline.
+  if (!candidateIds && !filters.year) {
+    const rows = await runSparql(buildSparql({ candidateIds, filters, after, limit, idsOnly: true }), deadline);
+    candidateIds = [...new Set(rows.map(row => entityIdFromUri(row.item?.value)).filter(Boolean))];
+    if (!candidateIds.length) return [];
+  }
+  const rows = await runSparql(buildSparql({ candidateIds, filters, after, limit }), deadline);
+  return candidateIds ? rows.filter(row => candidateIds.includes(entityIdFromUri(row.item?.value))) : rows;
+}
+
+async function runSparql(sparql, deadline) {
   const body = await fetchJson(SPARQL_ENDPOINT, {
     method: "POST",
     headers: {
@@ -466,4 +480,4 @@ async function getAnimeDetail(animeId, deadline = Date.now() + REQUEST_TIMEOUT_M
   return { ...summary, releaseDate: null, episodeCount: null };
 }
 
-module.exports = { ApiError, listAnime, getAnimeDetail, buildSparql };
+module.exports = { ApiError, listAnime, getAnimeDetail, buildSparql, REQUEST_TIMEOUT_MS };

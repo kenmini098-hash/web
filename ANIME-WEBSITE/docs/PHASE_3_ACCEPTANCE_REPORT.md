@@ -21,8 +21,9 @@ scope and requested genre/year filters, and selected PostgreSQL,
 email/password + Argon2id + server-side sessions, no catalog cache, and
 REST/JSON. The design documents and source evidence have been updated to
 reflect this. R01's direction is resolved and cross-document consistency
-re-review is complete. Subsequent owner approval of the remaining design and
-Phase 3 exit is recorded below. Phase 4 remains unauthorized.
+re-review is complete. Subsequent owner approval of the remaining design,
+Phase 3 exit, and separate Phase 4 public-catalog authorization is recorded
+below.
 
 **Acceptance kickoff (2026-11-15):** At the owner's request, filter behavior
 and measurable MVP operational targets have now been specified across
@@ -32,18 +33,21 @@ provider guarantees.
 
 **Owner approval (2026-11-15):** The owner approved the detailed filter
 semantics and operational target proposals. This approves those design
-decisions only; it does not approve the complete Phase 3 package, phase exit,
-account lifecycle policies, or Phase 4.
+decisions only. At that time, the complete Phase 3 package, phase exit,
+account lifecycle policies, and Phase 4 remained pending.
 
 **Architecture approval (2026-11-15):** The owner approved the architecture
-described in `ARCHITECTURE.md` for design. This does not authorize
+described in `ARCHITECTURE.md` for design. At that time this did not authorize
 implementation or approve the API contract, database schema, account
-lifecycle policies, Phase 3 exit, or Phase 4.
+lifecycle policies, Phase 3 exit, or Phase 4; subsequent approval is recorded
+below.
 
 **Phase 3 exit approval (2026-11-15):** The owner explicitly approved the
 current API contract and PostgreSQL schema and approved Phase 3 exit. Account
 lifecycle decisions and hosting-vendor selection are deferred blockers before
-implementation. Phase 4 remains unauthorized until separately approved.
+implementation of account/favorite features. The owner separately authorized
+Phase 4 public-catalog implementation on 2026-11-15; account/favorite work
+remains gated on lifecycle decisions.
 
 ## Acceptance criteria
 
@@ -53,14 +57,14 @@ implementation. Phase 4 remains unauthorized until separately approved.
 | Schema, API endpoints, data fields, and ownership are explicit. | **Pass; owner-approved for design** | `DATA_MAPPING.md` specifies column types, nullability, keys, ownership, and provider mappings. `API_CONTRACT.md` defines endpoint methods, request bodies, success payloads, and shared error shape. |
 | Security, error handling, responsive behavior, and legal data/video constraints are addressed. | **Pass at design level** | CSRF, sessions, password hashing, authorization, rate limits, secret handling, error states, responsive behavior, accessibility expectations, and image/video restrictions are documented. No runtime/security testing is claimed. |
 | Coordinator submits recommendation and tradeoffs; owner approves architecture, contract, schema, and Phase 3 exit. | **Pass; approved 2026-11-15** | The owner explicitly approved the current architecture, API contract, PostgreSQL schema, and Phase 3 exit. |
-| Owner separately authorizes transition to Phase 4. | **Pending** | Phase 3 exit does not authorize Phase 4; no implementation work may start until separately approved and blockers are resolved. |
+| Owner separately authorizes transition to Phase 4. | **Pass for public catalog; account/favorite scope gated** | The owner separately authorized Phase 4 public-catalog implementation on 2026-11-15. Account/favorite implementation remains blocked on lifecycle decisions. |
 
 ## Approval record and remaining blockers
 
 1. **Approved design:** TV + anime-film catalog, filter semantics, same-origin Express modular monolith, PostgreSQL schema, email/password + Argon2id + server-side session pattern, REST/JSON, no catalog cache, and the operational targets are owner-approved for design. Wikidata coverage/facet completeness are not guaranteed; no media rights are implied.
-2. **Account lifecycle blocker:** Before implementation, decide email verification, recovery, deletion/export, retention, token lifetime, mail delivery, and registration abuse policy.
-3. **Hosting blocker:** Before implementation, choose a Japan-region vendor after verifying price, terms, managed PostgreSQL/backups, secret storage, and monitoring against the approved targets.
-4. **Separate gate:** Phase 3 exit is approved. Phase 4 still requires separate owner authorization and cannot start until blockers are resolved.
+2. **Account lifecycle blocker:** Before account/favorite implementation, decide email verification, recovery, deletion/export, retention, token lifetime, mail delivery, and registration abuse policy.
+3. **Hosting blocker:** Before deployment planning is finalized, choose a Japan-region vendor after verifying price, terms, managed PostgreSQL/backups, secret storage, and monitoring against the approved targets.
+4. **Separate gate:** Phase 3 exit is approved and Phase 4 public-catalog work was separately authorized on 2026-11-15. Account/favorite work remains blocked on lifecycle decisions; hosting vendor selection is a deployment-planning prerequisite.
 
 ## Review activity and limits
 
@@ -71,6 +75,6 @@ implementation. Phase 4 remains unauthorized until separately approved.
 
 ## Handoff
 
-- **Remaining work:** Resolve account lifecycle policies and select a hosting vendor before implementation. Phase 3 exit is approved; Phase 4 requires separate authorization.
-- **Recommendation:** Keep implementation gated until account lifecycle and hosting decisions are resolved, then request separate Phase 4 authorization.
-- **Status:** **Phase 3 exit approved; Phase 4 transition pending separate authorization and blocker resolution.**
+- **Remaining work:** Resolve account lifecycle policies before account/favorite implementation and select a hosting vendor during deployment planning. Continue only the Phase 4 scope already authorized.
+- **Recommendation:** Keep account/favorite work gated on lifecycle decisions; choose a hosting vendor before deployment. Do not expand Phase 4 beyond its separately authorized public-catalog scope without approval.
+- **Status:** **Phase 3 exit approved; Phase 4 public-catalog implementation separately authorized.**

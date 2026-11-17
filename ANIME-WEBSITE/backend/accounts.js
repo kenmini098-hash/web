@@ -1,7 +1,7 @@
 const express = require("express");
 const crypto = require("node:crypto");
 const argon2 = require("argon2");
-const { ApiError, getAnimeDetail } = require("./wikidata");
+const { ApiError, getAnimeDetail, REQUEST_TIMEOUT_MS } = require("./wikidata");
 const { recordActivity, deleteOwnAccount } = require("./account-lifecycle");
 
 const hash = value => crypto.createHash("sha256").update(value).digest();
@@ -208,7 +208,7 @@ function createAccounts({ db, secret, secure = true, resolveAnime = getAnimeDeta
         (created_at=$2::timestamptz AND (provider,provider_id)>($3,$4)))
       ORDER BY created_at DESC,provider,provider_id LIMIT $5`, [req.account.id, position?.time || null, position?.provider || "", position?.id || "", limit + 1]);
     const rows = result.rows.slice(0, limit);
-    const deadline = Date.now() + 8000;
+    const deadline = Date.now() + REQUEST_TIMEOUT_MS;
     const items = [];
     for (const row of rows) {
       const id = animeId(row.provider_id);

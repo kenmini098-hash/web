@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { ApiError, buildSparql, listAnime } = require("../wikidata");
+const { ApiError, buildSparql, listAnime, getAnimeDetail, REQUEST_TIMEOUT_MS } = require("../wikidata");
 
 function binding(qid, typeId, title, year, genreId, genreLabel) {
   return {
@@ -30,10 +30,11 @@ test("search maps qualified Wikidata results, emits facets, and signs continuati
         assert.equal(url.searchParams.get("search"), "進撃の巨人");
         return Response.json({
           search: [{ id: qid }],
-          continue: { continue: "-||", "search-continue": 1 },
+          "search-continue": 1,
         });
       }
-      assert.equal(url.searchParams.get("search-continue"), "1");
+      assert.equal(url.searchParams.get("continue"), "1");
+      assert.equal(url.searchParams.has("search-continue"), false);
       return Response.json({ search: [] });
     }
 
@@ -100,6 +101,10 @@ test("date unions bind each anime class and genre facets exclude media classes",
   assert.match(query, /FILTER\(\?genre NOT IN \(wd:Q63952888, wd:Q20650540\)\)/);
   assert.match(query, /FILTER\(wd:Q201658 NOT IN \(wd:Q63952888, wd:Q20650540\)\)/);
   assert.doesNotMatch(query, /SELECT DISTINCT/);
+  const continued = buildSparql({ candidateIds: null, filters: {}, after: "Q22126305", limit: 2 });
+  assert.match(continued, /FILTER\(STR\(\?item\) > STR\(wd:Q22126305\)\)/);
+  assert.match(continued, /ORDER BY STR\(\?item\)/);
+  assert.doesNotMatch(continued, /FILTER\(\?item >/);
 });
 
 test("malformed Wikidata response rows become provider errors", async () => {
@@ -164,4 +169,94 @@ test("provider concurrency is bounded and capacity is released", async () => {
     await Promise.all([first, second]);
     assert.deepEqual((await query()).items, []);
   } finally { release(); await Promise.allSettled([first, second]); global.fetch = originalFetch; }
+});
+
+test("browse qualifies before enrichment, deduplicates and advances its signed cursor", async () => {
+  const originalFetch = global.fetch;
+  const queries = [];
+  global.fetch = async (url, options) => {
+    const query = new URLSearchParams(options.body).get("query");
+    queries.push(query);
+    const continued = query.includes("STR(wd:Q101)");
+    const ids = continued ? ["Q102"] : ["Q100", "Q101", "Q102"];
+    if (query.includes("SELECT DISTINCT ?item")) {
+      assert.ok(query.includes('LANG(?title) = "ja"'));
+      assert.ok(!query.includes("?yearCandidate"));
+      return Response.json({ results: { bindings: ids.map(id => ({ item: { value: `http://www.wikidata.org/entity/${id}` } })) } });
+    }
+    if (!query.includes("HAVING")) assert.ok(query.includes("VALUES ?item"));
+    const rows = ids.map(id => binding(id, "Q63952888", id, 2013, id === "Q102" ? "Q300" : "Q200", "Test genre"));
+    const unexpected = binding("Q999", "Q63952888", "Unexpected", 2013, "Q999", "Ignored");
+    return Response.json({ results: { bindings: [...rows, rows[0], ...(query.includes("HAVING") ? [] : [unexpected])] } });
+  };
+  try {
+    const first = await listAnime({ mode: "browse", q: null, filters: {}, limit: 2, cursor: null });
+    assert.deepEqual(first.items.map(item => item.source.providerId), ["Q100", "Q101"]);
+    assert.deepEqual(first.facets.genres.map(genre => genre.id), ["Q200"]);
+    const next = await listAnime({ mode: "browse", q: null, filters: {}, limit: 2, cursor: first.page.nextCursor });
+    assert.deepEqual(next.items.map(item => item.source.providerId), ["Q102"]);
+    assert.equal(next.page.nextCursor, null);
+    assert.deepEqual(next.facets.genres, []);
+    assert.equal(queries.length, 4);
+    queries.length = 0;
+    await listAnime({ mode: "browse", q: null, filters: { year: 2013 }, limit: 2, cursor: null });
+    assert.equal(queries.length, 1);
+    assert.ok(queries[0].includes("HAVING (MIN(?yearCandidate) = 2013)"));
+  } finally { global.fetch = originalFetch; }
+});
+
+test("invalid upstream search continuation is rejected instead of looping", async () => {
+  const originalFetch = global.fetch;
+  try {
+    for (const offset of [-1, "1", 1.5, null]) {
+      global.fetch = async () => Response.json({ search: [], "search-continue": offset });
+      await assert.rejects(listAnime({ mode: "search", q: "test", filters: {}, limit: 2, cursor: null }),
+        error => error.code === "PROVIDER_UNAVAILABLE" && error.status === 502);
+    }
+    global.fetch = async () => Response.json({ search: [], "search-continue": 1 });
+    const first = await listAnime({ mode: "search", q: "test", filters: {}, limit: 2, cursor: null });
+    await assert.rejects(listAnime({ mode: "search", q: "test", filters: {}, limit: 2, cursor: first.page.nextCursor }),
+      error => error.code === "PROVIDER_UNAVAILABLE");
+  } finally { global.fetch = originalFetch; }
+});
+
+test("both browse requests share the owner-approved total timeout budget", async () => {
+  const originalFetch = global.fetch, originalNow = Date.now, originalTimeout = AbortSignal.timeout;
+  let now = 1000;
+  const timeouts = [];
+  Date.now = () => now;
+  AbortSignal.timeout = ms => { timeouts.push(ms); return originalTimeout(ms); };
+  global.fetch = async (url, options) => {
+    const query = new URLSearchParams(options.body).get("query");
+    if (query.includes("SELECT DISTINCT")) {
+      now += 7000;
+      return Response.json({ results: { bindings: [{ item: { value: "http://www.wikidata.org/entity/Q100" } }] } });
+    }
+    return Response.json({ results: { bindings: [binding("Q100", "Q63952888", "Test", 2013, "Q200", "Genre")] } });
+  };
+  try {
+    await listAnime({ mode: "browse", q: null, filters: {}, limit: 2, cursor: null });
+    assert.equal(REQUEST_TIMEOUT_MS, 20000);
+    assert.deepEqual(timeouts, [20000, 13000]);
+  } finally { global.fetch = originalFetch; Date.now = originalNow; AbortSignal.timeout = originalTimeout; }
+});
+
+test("missing labels and unexpected entities never become a fabricated detail", async () => {
+  const originalFetch = global.fetch;
+  const id = Buffer.from("wikidata:Q100").toString("base64url");
+  try {
+    const missingTitle = binding("Q100", "Q63952888", "", 2013, "Q200", "Test");
+    const unrelated = binding("Q101", "Q63952888", "Other item", 2013, "Q200", "Test");
+    global.fetch = async () => Response.json({ results: { bindings: [missingTitle, unrelated] } });
+    assert.equal(await getAnimeDetail(id), null);
+    assert.equal(await getAnimeDetail("invalid"), null);
+    const missingFields = binding("Q100", "Q63952888", "Test item", 2013, "Q200", "Test");
+    delete missingFields.year; delete missingFields.description;
+    global.fetch = async () => Response.json({ results: { bindings: [missingFields] } });
+    const detail = await getAnimeDetail(id);
+    assert.equal(detail.year, null);
+    assert.equal(detail.description, null);
+    assert.equal(detail.episodeCount, null);
+    assert.equal(detail.releaseDate, null);
+  } finally { global.fetch = originalFetch; }
 });
