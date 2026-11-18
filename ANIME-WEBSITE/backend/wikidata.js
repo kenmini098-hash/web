@@ -11,13 +11,28 @@ const SPARQL_ENDPOINTS = new Set([
 ]);
 const SPARQL_ENDPOINT = process.env.WIKIDATA_SPARQL_ENDPOINT || "https://query.wikidata.org/sparql";
 const USER_AGENT = process.env.WIKIDATA_USER_AGENT || "AnimeWebsite/0.4 (+https://github.com/kenmini098-hash/web)";
-const REQUEST_TIMEOUT_MS = 20000;
+const REQUEST_TIMEOUT_MS = 8000;
+const MAX_LIMIT = 20;
+const MAX_RESPONSE_BYTES = 2_000_000;
+const MIN_RETRY_REMAINING_MS = 250;
 let activeRequests = 0;
 const QID_PATTERN = /^Q[1-9][0-9]*$/;
+const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/;
 const cursorSecret = process.env.CURSOR_SIGNING_KEY
   ? Buffer.from(process.env.CURSOR_SIGNING_KEY)
   : crypto.randomBytes(32);
 // shortcut: cursors are invalid after restart without CURSOR_SIGNING_KEY; set a stable key before multi-instance deployment.
+
+const SPARQL_PREFIXES = `
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>`;
 
 if (!SPARQL_ENDPOINTS.has(SPARQL_ENDPOINT)) {
   throw new Error("WIKIDATA_SPARQL_ENDPOINT must be an approved Wikidata endpoint");
@@ -39,8 +54,65 @@ function invalidRequest() {
   return new ApiError(400, "INVALID_REQUEST", "The request is invalid.");
 }
 
+function validateQid(value) {
+  if (typeof value !== "string" || !QID_PATTERN.test(value)) throw invalidRequest();
+  return value;
+}
+
+function validateLimit(limit, max = MAX_LIMIT) {
+  if (!Number.isInteger(limit) || limit < 1 || limit > max) throw invalidRequest();
+  return limit;
+}
+
+function normalizeFilters(filters = {}) {
+  return {
+    entityType: filters.entityType || null,
+    genreId: filters.genreId || null,
+    year: filters.year ?? null,
+  };
+}
+
+function validateFilters(filters = {}) {
+  if (!filters || typeof filters !== "object" || Array.isArray(filters)) throw invalidRequest();
+  const normalized = normalizeFilters(filters);
+  if (normalized.entityType !== null && !Object.hasOwn(TYPE_IDS, normalized.entityType)) {
+    throw invalidRequest();
+  }
+  if (normalized.genreId !== null) {
+    validateQid(normalized.genreId);
+    if (MEDIA_TYPE_IDS.includes(normalized.genreId)) throw invalidRequest();
+  }
+  if (normalized.year !== null) {
+    if (!Number.isInteger(normalized.year) || normalized.year < 1 || normalized.year > 9999) {
+      throw invalidRequest();
+    }
+  }
+  return normalized;
+}
+
+function validateListParams({ mode, q = null, filters = {}, limit = MAX_LIMIT, cursor = null }) {
+  if (mode !== "browse" && mode !== "search") throw invalidRequest();
+  let normalizedQ = null;
+  if (mode === "search") {
+    if (typeof q !== "string") throw invalidRequest();
+    normalizedQ = q.trim();
+    const codePoints = Array.from(normalizedQ).length;
+    if (codePoints < 1 || codePoints > 120) throw invalidRequest();
+  } else if (q !== null && q !== undefined && q !== "") {
+    throw invalidRequest();
+  }
+  return {
+    mode,
+    q: normalizedQ,
+    filters: validateFilters(filters),
+    limit: validateLimit(limit, MAX_LIMIT),
+    cursor: cursor ?? null,
+  };
+}
+
 function entityIdFromUri(value) {
-  const match = /^https?:\/\/www\.wikidata\.org\/entity\/(Q[1-9][0-9]*)$/.exec(value || "");
+  if (typeof value !== "string") return null;
+  const match = /^https?:\/\/www\.wikidata\.org\/entity\/(Q[1-9][0-9]*)$/.exec(value);
   return match && QID_PATTERN.test(match[1]) ? match[1] : null;
 }
 
@@ -74,29 +146,32 @@ function decodeCursor(token) {
   if (typeof token !== "string" || token.length > 4096) throw invalidRequest();
   const [body, signature, extra] = token.split(".");
   if (!body || !signature || extra !== undefined) throw invalidRequest();
+  if (!BASE64URL_PATTERN.test(body) || !BASE64URL_PATTERN.test(signature)) throw invalidRequest();
   const expected = crypto.createHmac("sha256", cursorSecret).update(body).digest();
-  let supplied;
-  try {
-    supplied = Buffer.from(signature, "base64url");
-  } catch {
-    throw invalidRequest();
-  }
+  const supplied = Buffer.from(signature, "base64url");
   if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) throw invalidRequest();
+  let payload;
   try {
-    const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
-    if (payload.v !== 1) throw invalidRequest();
-    return payload;
+    payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
   } catch {
     throw invalidRequest();
   }
-}
-
-function normalizeFilters(filters) {
-  return {
-    entityType: filters.entityType || null,
-    genreId: filters.genreId || null,
-    year: filters.year || null,
-  };
+  if (!payload || typeof payload !== "object" || Array.isArray(payload) || payload.v !== 1) {
+    throw invalidRequest();
+  }
+  if (payload.mode !== "browse" && payload.mode !== "search") throw invalidRequest();
+  if (!Array.isArray(payload.allowedGenreIds) || payload.allowedGenreIds.some(id => !QID_PATTERN.test(id || ""))) {
+    throw invalidRequest();
+  }
+  if (payload.after !== null && (typeof payload.after !== "string" || !QID_PATTERN.test(payload.after))) {
+    throw invalidRequest();
+  }
+  if (payload.mode === "browse" && !payload.after) throw invalidRequest();
+  if (payload.mode === "search") {
+    const step = payload.continuation?.searchContinue;
+    if (!Number.isSafeInteger(step) || step < 0) throw invalidRequest();
+  }
+  return payload;
 }
 
 function verifyCursorContext(payload, { mode, q, filters, limit }) {
@@ -110,68 +185,109 @@ function verifyCursorContext(payload, { mode, q, filters, limit }) {
   }
 }
 
-async function fetchJson(url, options, deadline) {
+class RetryableUpstreamError extends Error {
+  constructor(cause) {
+    super(cause.message);
+    this.cause = cause;
+  }
+}
+
+async function readResponseText(response) {
+  const reader = response.body?.getReader();
+  if (!reader) return "";
+  const chunks = [];
+  let bytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > MAX_RESPONSE_BYTES) {
+        await reader.cancel();
+        throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source returned an oversized response.");
+      }
+      chunks.push(Buffer.from(value));
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+async function fetchJsonOnce(url, options, deadline) {
   const remaining = deadline - Date.now();
   if (remaining <= 0) throw new ApiError(504, "PROVIDER_TIMEOUT", "The data source timed out.");
   if (activeRequests >= 2) throw new ApiError(503, "SERVICE_UNAVAILABLE", "Provider request capacity reached.", "1");
 
-  let response;
   let text;
   activeRequests++;
   try {
-    response = await fetch(url, { ...options, redirect: "error", signal: AbortSignal.timeout(remaining) });
+    const response = await fetch(url, { ...options, redirect: "error", signal: AbortSignal.timeout(remaining) });
     if (response.status === 429) {
       const retryAfter = response.headers.get("retry-after");
       throw new ApiError(429, "RATE_LIMITED", "The data source asked us to slow down.", retryAfter);
     }
-    if (!response.ok) throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source is unavailable.");
-    const reader = response.body?.getReader();
-    const chunks = [];
-    let bytes = 0;
-    if (reader) {
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          bytes += value.byteLength;
-          if (bytes > 2_000_000) {
-            await reader.cancel();
-            throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source returned an oversized response.");
-          }
-          chunks.push(Buffer.from(value));
-        }
-      } finally { reader.releaseLock(); }
+    if (!response.ok) {
+      const apiError = new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source is unavailable.");
+      if (response.status >= 500) throw new RetryableUpstreamError(apiError);
+      throw apiError;
     }
-    text = Buffer.concat(chunks).toString("utf8");
+    text = await readResponseText(response);
   } catch (error) {
-    if (error instanceof ApiError) throw error;
+    if (error instanceof ApiError || error instanceof RetryableUpstreamError) throw error;
     if (error.name === "TimeoutError" || error.name === "AbortError") {
       throw new ApiError(504, "PROVIDER_TIMEOUT", "The data source timed out.");
     }
-    throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source is unavailable.");
+    throw new RetryableUpstreamError(
+      new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source is unavailable."),
+    );
   } finally {
     activeRequests--;
   }
 
-  let body;
   try {
-    if (Buffer.byteLength(text) > 2_000_000) throw new Error("Response too large");
-    body = JSON.parse(text);
+    if (Buffer.byteLength(text) > MAX_RESPONSE_BYTES) throw new Error("Response too large");
+    const body = JSON.parse(text);
     if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Invalid response object");
+    return body;
   } catch {
     throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source returned an invalid response.");
   }
-  return body;
+}
+
+/**
+ * Executes a read-only provider request with bounded concurrency, response size cap,
+ * and at most one jittered retry on transient upstream failures when deadline permits.
+ */
+async function fetchJson(url, options, deadline, { retryable = true } = {}) {
+  try {
+    return await fetchJsonOnce(url, options, deadline);
+  } catch (error) {
+    if (!(error instanceof RetryableUpstreamError)) throw error;
+    if (!retryable) throw error.cause;
+    const remaining = deadline - Date.now();
+    const jitterMs = 40 + Math.floor(Math.random() * 80);
+    if (remaining <= jitterMs + MIN_RETRY_REMAINING_MS) throw error.cause;
+    await new Promise(resolve => setTimeout(resolve, jitterMs));
+    if (deadline - Date.now() <= 0) throw error.cause;
+    try {
+      return await fetchJsonOnce(url, options, deadline);
+    } catch (retryError) {
+      if (retryError instanceof RetryableUpstreamError) throw retryError.cause;
+      throw retryError;
+    }
+  }
 }
 
 async function searchEntities(q, limit, continuation, deadline) {
+  const safeLimit = validateLimit(limit, MAX_LIMIT);
   const params = new URLSearchParams({
     action: "wbsearchentities",
     search: q,
     language: "ja",
     uselang: "ja",
     type: "item",
-    limit: String(limit),
+    limit: String(safeLimit),
     format: "json",
   });
   if (continuation?.searchContinue !== undefined) {
@@ -181,11 +297,15 @@ async function searchEntities(q, limit, continuation, deadline) {
   const body = await fetchJson(`${ACTION_API}?${params}`, {
     headers: { Accept: "application/json", "User-Agent": USER_AGENT },
   }, deadline);
-  if (body.error || !Array.isArray(body.search) || !body.search.every(item => item && typeof item.id === "string")) {
+  if (
+    body.error ||
+    !Array.isArray(body.search) ||
+    !body.search.every(item => item && typeof item === "object" && !Array.isArray(item) && typeof item.id === "string")
+  ) {
     throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source returned an invalid response.");
   }
 
-  const ids = body.search.map(item => item.id).filter(id => QID_PATTERN.test(id || ""));
+  const ids = [...new Set(body.search.map(item => item.id).filter(id => QID_PATTERN.test(id)))].slice(0, safeLimit);
   const offset = body["search-continue"];
   if (offset !== undefined && (!Number.isSafeInteger(offset) || offset < 0 || offset <= (continuation?.searchContinue ?? -1))) {
     throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source returned an invalid continuation.");
@@ -194,49 +314,165 @@ async function searchEntities(q, limit, continuation, deadline) {
   return { ids, next };
 }
 
-function buildSparql({ candidateIds, filters, after, limit, idsOnly = false }) {
-  const classValues = Object.values(TYPE_IDS).map(id => `wd:${id}`).join(" ");
-  const candidateValues = candidateIds?.length
-    ? `VALUES ?item { ${candidateIds.map(id => `wd:${id}`).join(" ")} }`
-    : "";
-  const afterFilter = after ? `FILTER(STR(?item) > STR(wd:${after}))` : "";
-  const typeFilter = filters.entityType ? `FILTER(?type = wd:${TYPE_IDS[filters.entityType]})` : "";
-  const genreFilter = filters.genreId ? `
+function buildGenreFilter(genreId) {
+  if (!genreId) return "";
+  return `
+      ?item wdt:P136 wd:${genreId} .
       FILTER EXISTS {
-        ?item wdt:P136 wd:${filters.genreId} .
-        wd:${filters.genreId} wdt:P31 ?filterGenreType ; rdfs:label ?filterGenreLabel .
+        wd:${genreId} wdt:P31 ?filterGenreType ; rdfs:label ?filterGenreLabel .
         VALUES ?filterGenreType { ${GENRE_TYPE_IDS.map(id => `wd:${id}`).join(" ")} }
-        FILTER(wd:${filters.genreId} NOT IN (${MEDIA_TYPE_IDS.map(id => `wd:${id}`).join(", ")}))
+        FILTER(wd:${genreId} NOT IN (${MEDIA_TYPE_IDS.map(id => `wd:${id}`).join(", ")}))
         FILTER(LANG(?filterGenreLabel) = "ja")
-      }` : "";
-  const yearHaving = filters.year ? `HAVING (MIN(?yearCandidate) = ${filters.year})` : "";
+      }`;
+}
+
+function buildDateBranch(typeKey, candidateValues = "", { statementVar = "?dateStatement", nodeVar = "?timeNode", valueVar = "?dateValue", precisionVar = "?precision" } = {}) {
+  if (typeKey === "anime_tv") {
+    return `{
+          VALUES ?type { wd:${TYPE_IDS.anime_tv} }
+          ${candidateValues}
+          ?item wdt:P31 wd:${TYPE_IDS.anime_tv} .
+          ?item p:P580 ${statementVar} .
+          ${statementVar} psv:P580 ${nodeVar} .
+          ${nodeVar} wikibase:timeValue ${valueVar} ; wikibase:timePrecision ${precisionVar} .
+        }`;
+  }
+  return `{
+          VALUES ?type { wd:${TYPE_IDS.anime_film} }
+          ${candidateValues}
+          ?item wdt:P31 wd:${TYPE_IDS.anime_film} .
+          ?item p:P577 ${statementVar} .
+          ${statementVar} pq:P291 wd:Q17 ; psv:P577 ${nodeVar} .
+          ${nodeVar} wikibase:timeValue ${valueVar} ; wikibase:timePrecision ${precisionVar} .
+        }`;
+}
+
+function buildTypeDateCondition(entityType, candidateValues = "") {
+  if (entityType) return buildDateBranch(entityType, candidateValues);
+  return `${buildDateBranch("anime_tv", candidateValues)}
+        UNION
+        ${buildDateBranch("anime_film", candidateValues)}`;
+}
+
+function buildIdsOnlyYearBranch(typeKey, year, genreFilter, afterFilter, candidateValues = "") {
+  const start = `"${String(year).padStart(4, "0")}-01-01T00:00:00Z"^^xsd:dateTime`;
+  const rangeCondition = year < 9999
+    ? `?dateValue >= ${start} && ?dateValue < "${String(year + 1).padStart(4, "0")}-01-01T00:00:00Z"^^xsd:dateTime`
+    : `?dateValue >= ${start} && YEAR(?dateValue) = 9999`;
+  const prop = typeKey === "anime_tv" ? "P580" : "P577";
+  const qualifier = typeKey === "anime_film" ? "pq:P291 wd:Q17 ; " : "";
+  return `
+      ${genreFilter}
+      ${candidateValues}
+      ?item wdt:P31 wd:${TYPE_IDS[typeKey]} .
+      ?item p:${prop} ?dateStatement .
+      ?dateStatement ${qualifier}wikibase:rank ?dateRank ; psv:${prop} ?timeNode .
+      ?timeNode wikibase:timeValue ?dateValue ; wikibase:timePrecision ?precision .
+      FILTER(?dateRank != wikibase:DeprecatedRank && ?precision >= 9)
+      FILTER(${rangeCondition})
+      FILTER NOT EXISTS {
+        ?item p:${prop} ?earlierStmt .
+        ?earlierStmt ${qualifier}wikibase:rank ?earlierRank ; psv:${prop} ?earlierNode .
+        ?earlierNode wikibase:timeValue ?earlierDate ; wikibase:timePrecision ?earlierPrec .
+        FILTER(?earlierRank != wikibase:DeprecatedRank && ?earlierPrec >= 9 && ?earlierDate < ${start})
+      }
+      FILTER NOT EXISTS {
+        ?item wdt:P31 wd:${TYPE_IDS.anime_tv}, wd:${TYPE_IDS.anime_film} .
+      }
+      ${afterFilter}
+      ?item rdfs:label ?title .
+      FILTER(LANG(?title) = "ja")`;
+}
+
+const GENRE_OPTIONAL_CLAUSE = `
+  OPTIONAL {
+    ?item wdt:P136 ?genre .
+    ?genre wdt:P31 ?genreType ; rdfs:label ?genreLabel .
+    VALUES ?genreType { ${GENRE_TYPE_IDS.map(id => `wd:${id}`).join(" ")} }
+    FILTER(?genre NOT IN (${MEDIA_TYPE_IDS.map(id => `wd:${id}`).join(", ")}))
+    FILTER(LANG(?genreLabel) = "ja")
+  }`;
+
+/**
+ * Builds a fixed-template SPARQL query from validated QIDs and filters only.
+ */
+function buildSparql({ candidateIds = null, filters = {}, after = null, limit = MAX_LIMIT, idsOnly = false, includeReleaseDate = false }) {
+  let safeCandidateIds = null;
+  if (candidateIds !== null && candidateIds !== undefined) {
+    if (!Array.isArray(candidateIds)) throw invalidRequest();
+    if (candidateIds.length > MAX_LIMIT + 1) throw invalidRequest();
+    if (candidateIds.length) safeCandidateIds = candidateIds.map(validateQid);
+  }
+  const safeFilters = validateFilters(filters);
+  const safeAfter = after ? validateQid(after) : null;
+  const safeLimit = validateLimit(limit, MAX_LIMIT + 1);
+
+  const selectedTypeIds = safeFilters.entityType ? [TYPE_IDS[safeFilters.entityType]] : Object.values(TYPE_IDS);
+  const classValues = selectedTypeIds.map(id => `wd:${id}`).join(" ");
+  const candidateValues = safeCandidateIds ? `VALUES ?item { ${safeCandidateIds.map(id => `wd:${id}`).join(" ")} }` : "";
+  const afterFilter = safeAfter ? `FILTER(STR(?item) > STR(wd:${safeAfter}))` : "";
+  const genreFilter = buildGenreFilter(safeFilters.genreId);
   const qualification = `
+      ${genreFilter}
       ${candidateValues}
       VALUES ?type { ${classValues} }
       ?item wdt:P31 ?type .
       FILTER NOT EXISTS {
         ?item wdt:P31 wd:${TYPE_IDS.anime_tv}, wd:${TYPE_IDS.anime_film} .
       }
-      ${typeFilter}
       ${afterFilter}
       ?item rdfs:label ?title .
       FILTER(LANG(?title) = "ja")`;
-  const prefixes = `
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX p: <http://www.wikidata.org/prop/>
-PREFIX ps: <http://www.wikidata.org/prop/statement/>
-PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX schema: <http://schema.org/>`;
+
   if (idsOnly) {
-    return `${prefixes}
-SELECT DISTINCT ?item WHERE { ${qualification} ${genreFilter} }
-ORDER BY STR(?item) LIMIT ${limit}`;
+    if (safeFilters.year) {
+      if (safeFilters.entityType) {
+        return `${SPARQL_PREFIXES}
+SELECT DISTINCT ?item WHERE { ${buildIdsOnlyYearBranch(safeFilters.entityType, safeFilters.year, genreFilter, afterFilter, candidateValues)} }
+ORDER BY ?item LIMIT ${safeLimit}`;
+      }
+      return `${SPARQL_PREFIXES}
+SELECT DISTINCT ?item WHERE {
+  {
+    SELECT DISTINCT ?item WHERE { ${buildIdsOnlyYearBranch("anime_tv", safeFilters.year, genreFilter, afterFilter, candidateValues)} }
+    ORDER BY ?item LIMIT ${safeLimit}
   }
-  return `${prefixes}
+  UNION
+  {
+    SELECT DISTINCT ?item WHERE { ${buildIdsOnlyYearBranch("anime_film", safeFilters.year, genreFilter, afterFilter, candidateValues)} }
+    ORDER BY ?item LIMIT ${safeLimit}
+  }
+}
+ORDER BY ?item LIMIT ${safeLimit}`;
+    }
+    return `${SPARQL_PREFIXES}
+SELECT DISTINCT ?item WHERE { ${qualification} }
+ORDER BY ?item LIMIT ${safeLimit}`;
+  }
+
+  const datePattern = buildTypeDateCondition(safeFilters.entityType, candidateValues);
+  if (includeReleaseDate) {
+    return `${SPARQL_PREFIXES}
+SELECT ?item ?type ?title ?description ?dateValue ?precision ?genre ?genreLabel
+WHERE {
+  ${qualification}
+  OPTIONAL {
+    ?item schema:description ?description .
+    FILTER(LANG(?description) = "ja")
+  }
+  OPTIONAL {
+    ${datePattern}
+    ?dateStatement wikibase:rank ?dateRank .
+    FILTER(?dateRank != wikibase:DeprecatedRank)
+    FILTER(?precision >= 9)
+  }
+  ${GENRE_OPTIONAL_CLAUSE}
+}
+ORDER BY ?item ?genreLabel`;
+  }
+
+  const yearHaving = safeFilters.year ? `HAVING (MIN(?yearCandidate) = ${safeFilters.year})` : "";
+  return `${SPARQL_PREFIXES}
 SELECT ?item ?type ?title ?description ?year ?genre ?genreLabel
 WHERE {
   {
@@ -248,55 +484,34 @@ WHERE {
         FILTER(LANG(?descriptionValue) = "ja")
       }
       OPTIONAL {
-        {
-          VALUES ?type { wd:${TYPE_IDS.anime_tv} }
-          ${candidateValues}
-          ?item wdt:P31 wd:${TYPE_IDS.anime_tv} .
-          ?item p:P580 ?dateStatement .
-          ?dateStatement psv:P580 ?timeNode .
-          ?timeNode wikibase:timeValue ?dateValue ; wikibase:timePrecision ?precision .
-        }
-        UNION
-        {
-          VALUES ?type { wd:${TYPE_IDS.anime_film} }
-          ${candidateValues}
-          ?item wdt:P31 wd:${TYPE_IDS.anime_film} .
-          ?item p:P577 ?dateStatement .
-          ?dateStatement ps:P577 ?dateValue ; pq:P291 wd:Q17 ; psv:P577 ?timeNode .
-          ?timeNode wikibase:timeValue ?dateValue ; wikibase:timePrecision ?precision .
-        }
+        ${datePattern}
         ?dateStatement wikibase:rank ?dateRank .
         FILTER(?dateRank != wikibase:DeprecatedRank)
         FILTER(?precision >= 9)
         BIND(YEAR(?dateValue) AS ?yearCandidate)
       }
-      ${genreFilter}
     }
     GROUP BY ?item ?type ?title
     ${yearHaving}
-    ORDER BY STR(?item)
-    LIMIT ${limit}
+    ORDER BY ?item
+    LIMIT ${safeLimit}
   }
-  OPTIONAL {
-    ?item wdt:P136 ?genre .
-    ?genre wdt:P31 ?genreType ; rdfs:label ?genreLabel .
-    VALUES ?genreType { ${GENRE_TYPE_IDS.map(id => `wd:${id}`).join(" ")} }
-    FILTER(?genre NOT IN (${MEDIA_TYPE_IDS.map(id => `wd:${id}`).join(", ")}))
-    FILTER(LANG(?genreLabel) = "ja")
-  }
+  ${GENRE_OPTIONAL_CLAUSE}
 }
-ORDER BY STR(?item) ?genreLabel`;
+ORDER BY ?item ?genreLabel`;
 }
 
-async function queryRecords({ candidateIds, filters, after, limit, deadline }) {
-  // Without a year filter, qualify/page first and enrich only those IDs, under the same deadline.
-  if (!candidateIds && !filters.year) {
-    const rows = await runSparql(buildSparql({ candidateIds, filters, after, limit, idsOnly: true }), deadline);
-    candidateIds = [...new Set(rows.map(row => entityIdFromUri(row.item?.value)).filter(Boolean))];
-    if (!candidateIds.length) return [];
-  }
-  const rows = await runSparql(buildSparql({ candidateIds, filters, after, limit }), deadline);
-  return candidateIds ? rows.filter(row => candidateIds.includes(entityIdFromUri(row.item?.value))) : rows;
+function buildGenreFacetsSparql(candidateIds) {
+  const safeIds = candidateIds.map(validateQid);
+  return `${SPARQL_PREFIXES}
+SELECT DISTINCT ?genre ?genreLabel WHERE {
+  VALUES ?item { ${safeIds.map(id => `wd:${id}`).join(" ")} }
+  ?item wdt:P136 ?genre .
+  ?genre wdt:P31 ?genreType ; rdfs:label ?genreLabel .
+  VALUES ?genreType { ${GENRE_TYPE_IDS.map(id => `wd:${id}`).join(" ")} }
+  FILTER(?genre NOT IN (${MEDIA_TYPE_IDS.map(id => `wd:${id}`).join(", ")}))
+  FILTER(LANG(?genreLabel) = "ja")
+}`;
 }
 
 async function runSparql(sparql, deadline) {
@@ -309,52 +524,152 @@ async function runSparql(sparql, deadline) {
     },
     body: new URLSearchParams({ query: sparql, format: "json" }).toString(),
   }, deadline);
-  if (!Array.isArray(body.results?.bindings) || !body.results.bindings.every(row => row && typeof row === "object")) {
+  if (
+    !Array.isArray(body.results?.bindings) ||
+    !body.results.bindings.every(row => row && typeof row === "object" && !Array.isArray(row))
+  ) {
     throw new ApiError(502, "PROVIDER_UNAVAILABLE", "The data source returned an invalid response.");
   }
   return body.results.bindings;
 }
 
-function recordsFromBindings(bindings, candidateIds = null) {
+async function queryRecords({ candidateIds, filters, after, limit, deadline, includeReleaseDate = false }) {
+  if (!candidateIds) {
+    const rows = await runSparql(buildSparql({ candidateIds: null, filters, after, limit, idsOnly: true }), deadline);
+    candidateIds = [...new Set(rows.map(row => entityIdFromUri(row.item?.value)).filter(Boolean))];
+    if (!candidateIds.length) return [];
+    after = null;
+    limit = candidateIds.length;
+  }
+  const rows = await runSparql(
+    buildSparql({ candidateIds, filters, after, limit, includeReleaseDate }),
+    deadline,
+  );
+  const allowed = new Set(candidateIds);
+  return rows.filter(row => allowed.has(entityIdFromUri(row.item?.value)));
+}
+
+function validJapaneseLiteral(literal) {
+  if (!literal || typeof literal !== "object") return null;
+  if (literal["xml:lang"] !== undefined && literal["xml:lang"] !== "ja") return null;
+  if (typeof literal.value !== "string") return null;
+  const text = literal.value.trim();
+  if (!text) return null;
+  if (literal["xml:lang"] === undefined && QID_PATTERN.test(text)) return null;
+  return text;
+}
+
+function parseYear(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const year = Number(value);
+  return Number.isInteger(year) && year >= 1 && year <= 9999 ? year : null;
+}
+
+function parseReleaseDate(dateValue, precisionValue) {
+  if (typeof dateValue !== "string") return null;
+  const match = /^\+?(\d{4,})-(\d{2})-(\d{2})T/.exec(dateValue);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const precision = Number(precisionValue);
+  if (!Number.isInteger(year) || year < 1 || year > 9999) return null;
+  if (!Number.isInteger(precision) || precision < 9) return null;
+  if (precision === 9) return { year, month: null, day: null, precision: "year" };
+  if (precision === 10) {
+    if (!Number.isInteger(month) || month < 1 || month > 12) return null;
+    return { year, month, day: null, precision: "month" };
+  }
+  if (!Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(day) || day < 1 || day > 31) {
+    return null;
+  }
+  return { year, month, day, precision: "day" };
+}
+
+function compareReleaseDates(a, b) {
+  if (a.year !== b.year) return a.year - b.year;
+  const aMonth = a.month ?? 13;
+  const bMonth = b.month ?? 13;
+  if (aMonth !== bMonth) return aMonth - bMonth;
+  const aDay = a.day ?? 32;
+  const bDay = b.day ?? 32;
+  return aDay - bDay;
+}
+
+function compareGenres(a, b) {
+  return a.label.localeCompare(b.label, "ja") || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+}
+
+function recordsFromBindings(bindings, candidateIds = null, { includeReleaseDate = false } = {}) {
   const records = new Map();
+  const conflicted = new Set();
+
   for (const row of bindings) {
     const qid = entityIdFromUri(row.item?.value);
     const typeId = entityIdFromUri(row.type?.value);
-    if (!qid || !TYPE_NAMES[typeId] || !row.title?.value) continue;
+    const title = validJapaneseLiteral(row.title);
+    if (!qid || !TYPE_NAMES[typeId] || !title || conflicted.has(qid)) continue;
+
     let record = records.get(qid);
+    if (record && record.entityType !== TYPE_NAMES[typeId]) {
+      records.delete(qid);
+      conflicted.add(qid);
+      continue;
+    }
+
+    const description = validJapaneseLiteral(row.description);
     if (!record) {
-      const year = Number(row.year?.value);
       record = {
-        providerId: qid,
         id: encodeAnimeId(qid),
-        title: row.title.value,
-        description: row.description?.value || null,
+        title,
+        description,
         entityType: TYPE_NAMES[typeId],
         genres: [],
-        year: Number.isInteger(year) && year >= 1 && year <= 9999 ? year : null,
+        year: parseYear(row.year?.value),
         source: {
           provider: "wikidata",
           providerId: qid,
           uri: `https://www.wikidata.org/entity/${qid}`,
           fetchedAt: new Date().toISOString(),
         },
+        _genres: new Map(),
+        _releaseDate: null,
       };
-      record._genres = new Map();
       records.set(qid, record);
+    } else if (!record.description && description) {
+      record.description = description;
     }
+
+    const candidateDate = parseReleaseDate(row.dateValue?.value, row.precision?.value);
+    if (candidateDate) {
+      if (!record._releaseDate || compareReleaseDates(candidateDate, record._releaseDate) < 0) {
+        record._releaseDate = candidateDate;
+      }
+      if (record.year === null || candidateDate.year < record.year) {
+        record.year = candidateDate.year;
+      }
+    }
+
     const genreId = entityIdFromUri(row.genre?.value);
-    const genreLabel = row.genreLabel?.value;
-    if (genreId && genreLabel) record._genres.set(genreId, { id: genreId, label: genreLabel });
+    const genreLabel = validJapaneseLiteral(row.genreLabel);
+    if (genreId && !MEDIA_TYPE_IDS.includes(genreId) && genreLabel) {
+      record._genres.set(genreId, { id: genreId, label: genreLabel });
+    }
   }
 
   let list = [...records.values()].map(record => {
-    record.genres = [...record._genres.values()].sort((a, b) =>
-      a.label.localeCompare(b.label, "ja") || a.id.localeCompare(b.id));
+    const releaseDate = record._releaseDate;
+    record.genres = [...record._genres.values()].sort(compareGenres);
     delete record._genres;
+    delete record._releaseDate;
+    if (includeReleaseDate) {
+      return { ...record, releaseDate: releaseDate || null, episodeCount: null };
+    }
     return record;
   });
+
   if (candidateIds) {
-    const byId = new Map(list.map(item => [item.providerId, item]));
+    const byId = new Map(list.map(item => [item.source.providerId, item]));
     list = candidateIds.map(id => byId.get(id)).filter(Boolean);
   }
   return list;
@@ -365,9 +680,26 @@ function makeFacets(items) {
   for (const item of items) {
     for (const genre of item.genres) genres.set(genre.id, genre);
   }
-  return [...genres.values()]
-    .sort((a, b) => a.label.localeCompare(b.label, "ja") || a.id.localeCompare(b.id))
-    .slice(0, 30);
+  return [...genres.values()].sort(compareGenres).slice(0, 30);
+}
+
+function makeFacetsFromGenreBindings(bindings) {
+  const genres = new Map();
+  for (const row of bindings) {
+    const genreId = entityIdFromUri(row.genre?.value);
+    const genreLabel = validJapaneseLiteral(row.genreLabel);
+    if (genreId && !MEDIA_TYPE_IDS.includes(genreId) && genreLabel) {
+      genres.set(genreId, { id: genreId, label: genreLabel });
+    }
+  }
+  return [...genres.values()].sort(compareGenres).slice(0, 30);
+}
+
+function matchesFilters(item, filters) {
+  if (filters.entityType && item.entityType !== filters.entityType) return false;
+  if (filters.genreId && !item.genres.some(genre => genre.id === filters.genreId)) return false;
+  if (filters.year !== null && item.year !== filters.year) return false;
+  return true;
 }
 
 function isFiltered(filters) {
@@ -388,9 +720,9 @@ function buildNextCursor({ mode, q, filters, limit, after, continuation, allowed
   });
 }
 
-async function listAnime({ mode, q, filters, limit, cursor }) {
+async function listAnime(rawParams) {
+  const { mode, q, filters: normalized, limit, cursor } = validateListParams(rawParams || {});
   const deadline = Date.now() + REQUEST_TIMEOUT_MS;
-  const normalized = normalizeFilters(filters);
   const cursorData = cursor ? decodeCursor(cursor) : null;
   if (cursorData) verifyCursorContext(cursorData, { mode, q, filters: normalized, limit });
 
@@ -415,36 +747,58 @@ async function listAnime({ mode, q, filters, limit, cursor }) {
     }
   }
 
-  let facets = [];
   if (!cursorData && !isFiltered(normalized)) {
     const bindings = await queryRecords({
       candidateIds,
       filters: normalized,
       after: null,
-      limit: mode === "browse" ? limit + 1 : limit,
+      limit: mode === "browse" ? limit + 1 : candidateIds.length,
       deadline,
     });
     const allItems = recordsFromBindings(bindings, candidateIds);
     const hasMore = mode === "browse" && allItems.length > limit;
     const items = allItems.slice(0, limit);
-    facets = makeFacets(items);
+    const facets = makeFacets(items);
     allowedGenreIds = facets.map(facet => facet.id);
     const nextCursor = mode === "browse"
-      ? buildNextCursor({ mode, q, filters: normalized, limit, after: hasMore ? items.at(-1)?.providerId : null, allowedGenreIds })
+      ? buildNextCursor({ mode, q, filters: normalized, limit, after: hasMore ? items.at(-1)?.source.providerId : null, allowedGenreIds })
       : buildNextCursor({ mode, q, filters: normalized, limit, continuation: searchNext, allowedGenreIds });
     return { items, page: { limit, nextCursor }, facets: { genres: facets } };
   }
 
   if (!cursorData && normalized.genreId) {
-    const baseBindings = await queryRecords({
-      candidateIds,
-      filters: normalizeFilters({}),
-      after: null,
-      limit: mode === "browse" ? limit : candidateIds.length,
+    if (mode === "search") {
+      const baseBindings = await queryRecords({
+        candidateIds,
+        filters: normalizeFilters({}),
+        after: null,
+        limit: candidateIds.length,
+        deadline,
+      });
+      const baseItems = recordsFromBindings(baseBindings, candidateIds).slice(0, limit);
+      const facets = makeFacets(baseItems);
+      allowedGenreIds = facets.map(facet => facet.id);
+      if (!allowedGenreIds.includes(normalized.genreId)) throw invalidRequest();
+      const items = baseItems.filter(item => matchesFilters(item, normalized));
+      const nextCursor = buildNextCursor({
+        mode,
+        q,
+        filters: normalized,
+        limit,
+        continuation: searchNext,
+        allowedGenreIds,
+      });
+      return { items, page: { limit, nextCursor }, facets: { genres: [] } };
+    }
+
+    const idRows = await runSparql(
+      buildSparql({ candidateIds: null, filters: normalizeFilters({}), after: null, limit, idsOnly: true }),
       deadline,
-    });
-    facets = makeFacets(recordsFromBindings(baseBindings, candidateIds).slice(0, limit));
-    allowedGenreIds = facets.map(facet => facet.id);
+    );
+    const unfilteredIds = [...new Set(idRows.map(row => entityIdFromUri(row.item?.value)).filter(Boolean))].slice(0, limit);
+    if (!unfilteredIds.length) throw invalidRequest();
+    const genreRows = await runSparql(buildGenreFacetsSparql(unfilteredIds), deadline);
+    allowedGenreIds = makeFacetsFromGenreBindings(genreRows).map(facet => facet.id);
     if (!allowedGenreIds.includes(normalized.genreId)) throw invalidRequest();
   }
   if (normalized.genreId && !allowedGenreIds.includes(normalized.genreId)) throw invalidRequest();
@@ -453,14 +807,14 @@ async function listAnime({ mode, q, filters, limit, cursor }) {
     candidateIds,
     filters: normalized,
     after: cursorData?.after || null,
-    limit: mode === "browse" ? limit + 1 : Math.max(candidateIds.length, 1),
+    limit: mode === "browse" ? limit + 1 : candidateIds.length,
     deadline,
   });
   const allItems = recordsFromBindings(bindings, candidateIds);
   const hasMore = mode === "browse" && allItems.length > limit;
   const items = allItems.slice(0, limit);
   const nextCursor = mode === "browse"
-    ? buildNextCursor({ mode, q, filters: normalized, limit, after: hasMore ? items.at(-1)?.providerId : null, allowedGenreIds })
+    ? buildNextCursor({ mode, q, filters: normalized, limit, after: hasMore ? items.at(-1)?.source.providerId : null, allowedGenreIds })
     : buildNextCursor({ mode, q, filters: normalized, limit, continuation: searchNext, allowedGenreIds });
   return { items, page: { limit, nextCursor }, facets: { genres: [] } };
 }
@@ -474,10 +828,9 @@ async function getAnimeDetail(animeId, deadline = Date.now() + REQUEST_TIMEOUT_M
     after: null,
     limit: 1,
     deadline,
+    includeReleaseDate: true,
   });
-  const summary = recordsFromBindings(bindings, [qid])[0];
-  if (!summary) return null;
-  return { ...summary, releaseDate: null, episodeCount: null };
+  return recordsFromBindings(bindings, [qid], { includeReleaseDate: true })[0] || null;
 }
 
 module.exports = { ApiError, listAnime, getAnimeDetail, buildSparql, REQUEST_TIMEOUT_MS };
