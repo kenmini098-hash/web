@@ -1,5 +1,9 @@
 # Phase 4 catalog verification
 
+## Browser regression update - 2026-11-21
+
+Available Windows browser runs passed 39/39 groups across Chrome, Edge, Firefox and WebKit, including 80 responsive layout checks. A crowded mobile header was fixed and the suite rerun successfully. See [BROWSER_QA_REPORT.md](BROWSER_QA_REPORT.md) and [BROWSER_QA_RESULTS.json](BROWSER_QA_RESULTS.json). Real Safari/iOS/Android and previous-major releases remain untested; whole-phase acceptance is still incomplete.
+
 Date: 2026-11-21
 
 - Phase: 4, implementation and acceptance preparation.

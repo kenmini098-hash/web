@@ -1,0 +1,101 @@
+{
+  "at": "2026-11-21T09:06:36.743Z",
+  "scope": "Headless Windows browsers; disposable PGlite; controlled provider fixtures; WebKit is not Safari/iOS certification",
+  "results": [
+    {
+      "name": "chrome",
+      "checks": [
+        "catalog render and five viewport widths",
+        "keyboard dialog, focus return, detail retry and five viewport widths",
+        "Japanese search, combined filters, submitted-criteria pagination and clear",
+        "empty result, provider timeout and user retry",
+        "anonymous favorite redirects to sign-in",
+        "native form validation, register, keyboard login and session reload",
+        "save favorite, list favorite, export download, remove favorite",
+        "password change, logout and login with new password",
+        "explicit reauthentication, confirmation and self deletion",
+        "emulated mobile touch: card, dialog close and login form"
+      ],
+      "errors": [],
+      "screenshots": [
+        "chrome-catalog.png",
+        "chrome-detail.png",
+        "chrome-login.png",
+        "chrome-account.png"
+      ],
+      "version": "157.0.8103.79",
+      "status": "passed"
+    },
+    {
+      "name": "edge",
+      "checks": [
+        "catalog render and five viewport widths",
+        "keyboard dialog, focus return, detail retry and five viewport widths",
+        "Japanese search, combined filters, submitted-criteria pagination and clear",
+        "empty result, provider timeout and user retry",
+        "anonymous favorite redirects to sign-in",
+        "native form validation, register, keyboard login and session reload",
+        "save favorite, list favorite, export download, remove favorite",
+        "password change, logout and login with new password",
+        "explicit reauthentication, confirmation and self deletion",
+        "emulated mobile touch: card, dialog close and login form"
+      ],
+      "errors": [],
+      "screenshots": [
+        "edge-catalog.png",
+        "edge-detail.png",
+        "edge-login.png",
+        "edge-account.png"
+      ],
+      "version": "157.0.4341.46",
+      "status": "passed"
+    },
+    {
+      "name": "firefox",
+      "checks": [
+        "catalog render and five viewport widths",
+        "keyboard dialog, focus return, detail retry and five viewport widths",
+        "Japanese search, combined filters, submitted-criteria pagination and clear",
+        "empty result, provider timeout and user retry",
+        "anonymous favorite redirects to sign-in",
+        "native form validation, register, keyboard login and session reload",
+        "save favorite, list favorite, export download, remove favorite",
+        "password change, logout and login with new password",
+        "explicit reauthentication, confirmation and self deletion"
+      ],
+      "errors": [],
+      "screenshots": [
+        "firefox-catalog.png",
+        "firefox-detail.png",
+        "firefox-login.png",
+        "firefox-account.png"
+      ],
+      "version": "159.0",
+      "status": "passed"
+    },
+    {
+      "name": "webkit",
+      "checks": [
+        "catalog render and five viewport widths",
+        "keyboard dialog, focus return, detail retry and five viewport widths",
+        "Japanese search, combined filters, submitted-criteria pagination and clear",
+        "empty result, provider timeout and user retry",
+        "anonymous favorite redirects to sign-in",
+        "native form validation, register, keyboard login and session reload",
+        "save favorite, list favorite, export download, remove favorite",
+        "password change, logout and login with new password",
+        "explicit reauthentication, confirmation and self deletion",
+        "emulated mobile touch: card, dialog close and login form"
+      ],
+      "errors": [],
+      "screenshots": [
+        "webkit-catalog.png",
+        "webkit-detail.png",
+        "webkit-login.png",
+        "webkit-account.png"
+      ],
+      "version": "27.2",
+      "status": "passed"
+    }
+  ]
+}

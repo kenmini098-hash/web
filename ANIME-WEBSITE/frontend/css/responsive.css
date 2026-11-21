@@ -5,8 +5,8 @@
 }
 
 @media (max-width: 560px) {
-  .site-header { min-height: 62px; padding: 0 18px; }
-  .header-note { max-width: 150px; font-size: 11px; text-align: right; }
+  .site-header { min-height: 62px; padding: 12px 18px; flex-wrap: wrap; gap: 8px 16px; }
+  .header-note { order: 1; flex-basis: 100%; font-size: 11px; }
   .page-shell { width: min(100% - 32px, 1120px); padding: 36px 0 56px; }
   .intro-copy { font-size: 15px; }
   .search-panel { padding: 16px; border-radius: 14px; }
