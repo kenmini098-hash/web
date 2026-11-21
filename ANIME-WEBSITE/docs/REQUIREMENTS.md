@@ -120,7 +120,7 @@ data source and the architecture/API contract approved in Phase 3.
 - **Performance:** At the MVP target load above, health/authentication/favorite
   write endpoints with no provider call shall meet p95 <= 500 ms. Catalog
   browse/search and metadata-enriched favorite listing shall meet p95 <= 5
-  seconds and p99 <= 8 seconds when Wikidata is responsive. Enforce an 8
+  seconds and p99 <= 8 seconds when Wikidata is responsive. For the owner-approved personal trial, enforce a 20
   second total deadline for provider-dependent requests and return a clear
   upstream error on timeout; never fabricate a success response. Frontend
   targets at mobile 4G-equivalent test conditions: LCP <= 2.5 seconds, INP <=

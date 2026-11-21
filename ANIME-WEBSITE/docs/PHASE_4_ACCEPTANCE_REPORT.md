@@ -1,5 +1,9 @@
 # Phase 4 acceptance preparation
 
+## Current trial update - 2026-11-21
+
+The owner-approved provider deadline is 20 seconds total, shared across upstream calls and metadata-enriched favorite listing. Regression tests pass 27/27 on the current code. Earlier dated results below remain historical evidence. See [CATALOG_VERIFICATION_REPORT.md](CATALOG_VERIFICATION_REPORT.md) for evidence scope and outstanding acceptance work. Whole-phase acceptance remains incomplete; Phase 5 is not authorized.
+
 Date: 2026-11-16
 
 Status: **Implementation delivered locally; acceptance remains conditional.** This evidence checklist is not final approval or permission to start Phase 5. General catalog browsing still times out against the real provider; that finding must not be hidden by passing account tests.

@@ -482,8 +482,8 @@ test("both browse requests share the owner-approved total timeout budget", async
   };
   try {
     await listAnime({ mode: "browse", q: null, filters: {}, limit: 2, cursor: null });
-    assert.equal(REQUEST_TIMEOUT_MS, 8000);
-    assert.deepEqual(timeouts, [8000, 1000]);
+    assert.equal(REQUEST_TIMEOUT_MS, 20000);
+    assert.deepEqual(timeouts, [20000, 13000]);
   } finally { global.fetch = originalFetch; Date.now = originalNow; AbortSignal.timeout = originalTimeout; }
 });
 

@@ -11,7 +11,7 @@ const SPARQL_ENDPOINTS = new Set([
 ]);
 const SPARQL_ENDPOINT = process.env.WIKIDATA_SPARQL_ENDPOINT || "https://query.wikidata.org/sparql";
 const USER_AGENT = process.env.WIKIDATA_USER_AGENT || "AnimeWebsite/0.4 (+https://github.com/kenmini098-hash/web)";
-const REQUEST_TIMEOUT_MS = 8000;
+const REQUEST_TIMEOUT_MS = 20000;
 const MAX_LIMIT = 20;
 const MAX_RESPONSE_BYTES = 2_000_000;
 const MIN_RETRY_REMAINING_MS = 250;

@@ -68,5 +68,5 @@ up overdue accounts after restoration before reopening user traffic.
   and secure cookies; never expose this local setup publicly.
 - Rate counters and two-request provider concurrency limits are per process.
 - There is no email verification, password recovery, catalog cache or paid API.
-- The general Wikidata browse query can exceed the eight-second deadline. The
+- The general Wikidata browse query can exceed the owner-approved 20-second trial deadline. The
   UI reports the failure instead of replacing it with invented records.

@@ -1,5 +1,9 @@
 # Phase 4 Implementation Report - Public Catalog Slice
 
+## Current trial update - 2026-11-21
+
+The owner-approved provider deadline is 20 seconds total, shared across upstream calls and metadata-enriched favorite listing. Regression tests pass 27/27 on the current code. Earlier dated results below remain historical evidence. See [CATALOG_VERIFICATION_REPORT.md](CATALOG_VERIFICATION_REPORT.md) for evidence scope and outstanding acceptance work. Whole-phase acceptance remains incomplete; Phase 5 is not authorized.
+
 **Date:** 2026-11-15
 **Status:** Account/public-catalog implementation delivered locally; conditional acceptance review. Latest evidence is below. Earlier sections are historical checkpoints, not current feature status.
 
