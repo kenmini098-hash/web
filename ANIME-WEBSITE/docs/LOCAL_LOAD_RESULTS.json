@@ -1,0 +1,110 @@
+{
+  "at": "2026-11-24T03:30:47.060Z",
+  "scope": "Loopback HTTP, real PostgreSQL random schema, 25 seeded sessions, no provider access, same machine client/server",
+  "profiles": [
+    {
+      "name": "25 simultaneous authenticated users",
+      "scheduledRps": null,
+      "count": 25,
+      "peakInFlight": 25,
+      "durationMs": 279.1953000000001,
+      "groups": {
+        "/api/v1/me": {
+          "requests": 25,
+          "statuses": {
+            "200": 25
+          },
+          "successfulP95Ms": 204.0041,
+          "successfulMaxMs": 256.2664
+        }
+      }
+    },
+    {
+      "name": "sustained 5 RPS for 60 seconds, same IP",
+      "scheduledRps": 5,
+      "count": 300,
+      "peakInFlight": 1,
+      "durationMs": 59808.5966,
+      "groups": {
+        "/healthz": {
+          "requests": 150,
+          "statuses": {
+            "200": 150
+          },
+          "successfulP95Ms": 3.675799999999981,
+          "successfulMaxMs": 66.40759999999955
+        },
+        "/api/v1/me": {
+          "requests": 150,
+          "statuses": {
+            "200": 120,
+            "429": 30
+          },
+          "successfulP95Ms": 8.58600000000024,
+          "successfulMaxMs": 27.269000000000233
+        }
+      }
+    },
+    {
+      "name": "burst 10 RPS for 60 seconds, same IP",
+      "scheduledRps": 10,
+      "count": 600,
+      "peakInFlight": 1,
+      "durationMs": 59901.945,
+      "groups": {
+        "/healthz": {
+          "requests": 300,
+          "statuses": {
+            "200": 300
+          },
+          "successfulP95Ms": 2.419000000008964,
+          "successfulMaxMs": 3.9690000000118744
+        },
+        "/api/v1/me": {
+          "requests": 300,
+          "statuses": {
+            "200": 120,
+            "429": 180
+          },
+          "successfulP95Ms": 6.881699999998091,
+          "successfulMaxMs": 53.60229999999865
+        }
+      }
+    },
+    {
+      "name": "favorite deletion without provider call, 25 simultaneous users",
+      "scheduledRps": null,
+      "count": 25,
+      "peakInFlight": 25,
+      "durationMs": 200.2399000000005,
+      "groups": {
+        "/api/v1/me/favorites/d2lraWRhdGE6UTIyMTI2MzA1": {
+          "requests": 25,
+          "statuses": {
+            "204": 25
+          },
+          "successfulP95Ms": 196.99079999999958,
+          "successfulMaxMs": 199.3017000000109
+        }
+      }
+    },
+    {
+      "name": "authentication burst, 25 simultaneous users on same IP",
+      "scheduledRps": null,
+      "count": 25,
+      "peakInFlight": 25,
+      "durationMs": 1023.524700000009,
+      "groups": {
+        "/api/v1/auth/login": {
+          "requests": 25,
+          "statuses": {
+            "200": 10,
+            "429": 15
+          },
+          "successfulP95Ms": 1018.7309999999998,
+          "successfulMaxMs": 1018.7309999999998
+        }
+      }
+    }
+  ]
+}

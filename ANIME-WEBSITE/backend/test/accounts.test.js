@@ -92,6 +92,16 @@ test("account HTTP flows, session security and favorite isolation", async t => {
       await bob.csrf();
       assert.equal((await alice.request("/auth/login", "POST", { email: "bob@example.invalid", password })).status, 401);
     });
+    await t.test("cross-site, stolen CSRF tokens and duplicate session cookies cannot mutate accounts", async () => {
+      const cookie = alice.cookie;
+      const headers = { Cookie: cookie, "Content-Type": "application/json", "X-CSRF-Token": alice.token };
+      const target = root + "/me";
+      assert.equal((await fetch(target, { method: "DELETE", headers: { ...headers, "Sec-Fetch-Site": "cross-site" }, body: JSON.stringify({ confirm: true }) })).status, 403);
+      assert.equal((await fetch(target, { method: "DELETE", headers: { ...headers, "X-CSRF-Token": bob.token }, body: JSON.stringify({ confirm: true }) })).status, 403);
+      assert.equal((await fetch(target, { headers: { Cookie: cookie + "; " + cookie } })).status, 401);
+      assert.equal((await alice.request("/me")).status, 200);
+      assert.equal((await alice.request("/auth/password", "POST", { currentPassword: "incorrect-password", newPassword: "new-password-12345" })).status, 401);
+    });
     await t.test("favorites are idempotent, scoped and cursors cannot cross accounts", async () => {
       assert.equal((await alice.request(`/me/favorites/${id}`, "PUT")).status, 201);
       assert.equal((await alice.request(`/me/favorites/${id}`, "PUT")).status, 200);

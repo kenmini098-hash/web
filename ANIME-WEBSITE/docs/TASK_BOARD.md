@@ -1,5 +1,9 @@
 # Anime Website - Phase Task Board
 
+## Load/security update ? 2026-11-24
+
+Step 3 executed: security regressions and dependency audit passed; 1,000 local HTTP load requests produced 775 successes and 225 policy-driven 429 responses. Concurrent login p95 was 1,018.73 ms, above the 500 ms target. Shared-IP limits also constrain capacity. See [PHASE_4_STEP_3_REPORT.md](PHASE_4_STEP_3_REPORT.md). Load acceptance and whole-phase approval remain incomplete.
+
 ## Live integration update ? 2026-11-24
 
 Step 2 passed 17/17 real-provider checks, including populated browse/search pagination and favorite metadata. See [PHASE_4_STEP_2_REPORT.md](PHASE_4_STEP_2_REPORT.md). This supersedes older statements that no successful current live browse/search evidence exists; latency guarantees and whole-phase acceptance remain pending.
