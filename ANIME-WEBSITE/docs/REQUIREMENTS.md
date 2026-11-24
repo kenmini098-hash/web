@@ -1,5 +1,9 @@
 # Anime Website - Requirements and Scope
 
+## Acceptance inventory ? 2026-11-24
+
+Current status and superseded historical wording are reconciled in [PHASE_4_STEP_1_CHECKLIST.md](PHASE_4_STEP_1_CHECKLIST.md). Step 1 is complete; later verification and whole-phase owner acceptance remain pending.
+
 **Status:** Phases 1-3 approved; Phase 4 active for the public catalog slice
 **Project phase:** 4 - Implementation
 **Version:** 0.4
