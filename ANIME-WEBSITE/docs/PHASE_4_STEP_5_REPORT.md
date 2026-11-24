@@ -19,7 +19,7 @@ Date: 2026-11-24. Product baseline: `843630e`.
 
 **B — Keep the original capacity/latency criteria as mandatory.** Leave those rows unaccepted and continue engineering work before final acceptance. A revised limiter policy, resource envelope and representative route/IP distribution must be proposed and approved, then measured on the intended runtime. No guarantee is made that a code-only change on this machine can meet the target. Password hashing protection must remain intact.
 
-These are proposals only. The user's project rule requires owner approval for changes affecting architecture or scope; requesting step 5 does not itself waive the original acceptance targets. No production policy or crypto parameter was changed during this review.
+The owner subsequently selected **A** on 2026-11-24. Option B is retained as the alternative considered, not an active task. The approved exception applies only to the personal trial: preserve the measured shared-IP throttling and concurrent-login latency limitations without treating the original operational targets as achieved. No production policy or crypto parameter was changed.
 
 ## Regression and evidence
 
@@ -35,6 +35,7 @@ These are proposals only. The user's project rule requires owner approval for ch
 - Task: review findings, fix within approved scope and verify regressions.
 - Completed: root-cause diagnostic, finding disposition, current-status reconciliation, regression run and two concrete decision options.
 - Files: this report, diagnostic evidence, task-board/acceptance status updates.
-- Outstanding: choose A or B above; unsupported-platform and deployment evidence remain explicit.
-- Recommendation: A for the existing personal trial; use B if the original operational criteria remain mandatory.
-- Status: **Review/regression complete; step 5 closure awaits owner decision. Whole-phase acceptance incomplete.**
+- Owner decision: A approved on 2026-11-24; keep Argon2id, 120 account requests/minute/IP and 10 authentication requests/15 minutes/IP.
+- Outstanding: unsupported-platform and deployment evidence remain explicit; final acceptance is reserved for step 6.
+- Recommendation: carry the approved trial exceptions into the final acceptance report.
+- Status: **Step 5 complete with owner-approved personal-trial exceptions. Whole-phase acceptance incomplete; Phase 5 not authorized.**

@@ -1,5 +1,9 @@
 # Anime Website - Phase Task Board
 
+## Owner decision A ? 2026-11-24
+
+The owner approved option A in [PHASE_4_STEP_5_REPORT.md](PHASE_4_STEP_5_REPORT.md): retain current Argon2id/security controls, 120 account requests/minute/IP and 10 authentication requests/15 minutes/IP. Accept the measured shared-IP capacity and concurrent-login p95 limitations for the personal trial only. Original capacity/latency targets are not represented as achieved. Step 5 is complete; unsupported browser/device and deployment/recovery guarantees remain unverified. Step 6 final acceptance and Phase 5 transition are not authorized by this decision.
+
 ## Populated recovery update ? 2026-11-24
 
 Step 4 passed eight integrity checks with three accounts, three sessions and six favorites in isolated PostgreSQL databases. Encrypted archive authentication, restored data/passwords and deletion behavior passed; the personal database was unchanged. See [PHASE_4_STEP_4_REPORT.md](PHASE_4_STEP_4_REPORT.md). Nightly/off-machine retention and production RPO/RTO remain unverified.
@@ -50,7 +54,7 @@ The owner-approved provider deadline is 20 seconds total, shared across upstream
 | P4-02 | Implement responsive Vietnamese catalog UI and API integration. | Implemented; available-browser checks passed | BROWSER_QA_REPORT.md: 39/39 groups, 80 layout checks, mobile header fixed. Real Apple/Android and previous releases remain untested. |
 | P4-03 | Implement accounts, favorites, and PostgreSQL persistence. | Implemented and locally tested | API/UI and real PostgreSQL account suite pass. Registration/login, favorites, password change, export/deletion and cleanup implemented; verification/recovery excluded. See latest implementation report. |
 | P4-04 | Verify provider integration against current upstream behavior and terms. | Live integration verified in sampled scope | PHASE_4_STEP_2_REPORT.md; no upstream load/SLO or catalog-wide accuracy guarantee. Terms/migration findings retain their recorded dates. |
-| P4-05 | Review Phase 4 evidence and obtain owner acceptance. | Step 5 awaiting owner decision | PHASE_4_STEP_5_REPORT.md: 28/28 regression, PostgreSQL 7/7; shared-IP capacity and concurrent-login latency require option A/B decision. No Phase 5 transition. |
+| P4-05 | Review Phase 4 evidence and obtain owner acceptance. | Step 5 complete; final acceptance pending | PHASE_4_STEP_5_REPORT.md: 28/28 regression, PostgreSQL 7/7; owner approved option A personal-trial capacity/latency exceptions. No Phase 5 transition. |
 
 ## Phase 1 exit checklist
 

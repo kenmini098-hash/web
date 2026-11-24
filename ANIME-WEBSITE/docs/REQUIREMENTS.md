@@ -1,5 +1,9 @@
 # Anime Website - Requirements and Scope
 
+## Owner decision A ? 2026-11-24
+
+The owner approved option A in [PHASE_4_STEP_5_REPORT.md](PHASE_4_STEP_5_REPORT.md): retain current Argon2id/security controls, 120 account requests/minute/IP and 10 authentication requests/15 minutes/IP. Accept the measured shared-IP capacity and concurrent-login p95 limitations for the personal trial only. Original capacity/latency targets are not represented as achieved. Step 5 is complete; unsupported browser/device and deployment/recovery guarantees remain unverified. Step 6 final acceptance and Phase 5 transition are not authorized by this decision.
+
 ## Acceptance inventory ? 2026-11-24
 
 Current status and superseded historical wording are reconciled in [PHASE_4_STEP_1_CHECKLIST.md](PHASE_4_STEP_1_CHECKLIST.md). Step 1 is complete; later verification and whole-phase owner acceptance remain pending.

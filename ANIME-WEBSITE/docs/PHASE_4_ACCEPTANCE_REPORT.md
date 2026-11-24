@@ -1,5 +1,9 @@
 # Phase 4 acceptance preparation
 
+## Owner decision A ? 2026-11-24
+
+The owner approved option A in [PHASE_4_STEP_5_REPORT.md](PHASE_4_STEP_5_REPORT.md): retain current Argon2id/security controls, 120 account requests/minute/IP and 10 authentication requests/15 minutes/IP. Accept the measured shared-IP capacity and concurrent-login p95 limitations for the personal trial only. Original capacity/latency targets are not represented as achieved. Step 5 is complete; unsupported browser/device and deployment/recovery guarantees remain unverified. Step 6 final acceptance and Phase 5 transition are not authorized by this decision.
+
 ## Findings and regression update ? 2026-11-24
 
 Step 5 review and regressions are complete: 28/28 full suite and 7/7 real PostgreSQL account checks passed. Capacity findings remain open; the concrete A/B owner decision is in [PHASE_4_STEP_5_REPORT.md](PHASE_4_STEP_5_REPORT.md). Neither the original traffic targets nor Phase 4/5 approval is inferred from the regression results.
