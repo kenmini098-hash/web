@@ -1,5 +1,9 @@
 # Phase 4 acceptance preparation
 
+## Findings and regression update ? 2026-11-24
+
+Step 5 review and regressions are complete: 28/28 full suite and 7/7 real PostgreSQL account checks passed. Capacity findings remain open; the concrete A/B owner decision is in [PHASE_4_STEP_5_REPORT.md](PHASE_4_STEP_5_REPORT.md). Neither the original traffic targets nor Phase 4/5 approval is inferred from the regression results.
+
 ## Populated recovery update ? 2026-11-24
 
 Step 4 passed eight integrity checks with three accounts, three sessions and six favorites in isolated PostgreSQL databases. Encrypted archive authentication, restored data/passwords and deletion behavior passed; the personal database was unchanged. See [PHASE_4_STEP_4_REPORT.md](PHASE_4_STEP_4_REPORT.md). Nightly/off-machine retention and production RPO/RTO remain unverified.

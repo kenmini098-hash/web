@@ -1,0 +1,30 @@
+{
+  "at": "2026-11-24T03:35:50.724Z",
+  "scope": "Diagnostic only, default Argon2id parameters unchanged; service latency excludes queue wait and HTTP/SQL",
+  "results": [
+    {
+      "concurrency": 1,
+      "verifications": 10,
+      "serviceP95Ms": 101.77680000000001,
+      "batchMs": 877.2866000000001
+    },
+    {
+      "concurrency": 2,
+      "verifications": 10,
+      "serviceP95Ms": 166.4131,
+      "batchMs": 752.1834999999999
+    },
+    {
+      "concurrency": 4,
+      "verifications": 10,
+      "serviceP95Ms": 315.2610000000002,
+      "batchMs": 753.0093999999999
+    },
+    {
+      "concurrency": 10,
+      "verifications": 10,
+      "serviceP95Ms": 766.9726,
+      "batchMs": 767.2795000000001
+    }
+  ]
+}
