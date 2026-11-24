@@ -1,0 +1,31 @@
+{
+  "at": "2026-11-24T03:33:14.825Z",
+  "status": "passed",
+  "scope": "Dedicated local PostgreSQL populated fixture only",
+  "fixtureCounts": {
+    "schema_migrations": 1,
+    "users": 3,
+    "sessions": 3,
+    "favorites": 6,
+    "verification_tokens": 0,
+    "password_reset_tokens": 0
+  },
+  "checks": [
+    "tampered ciphertext and wrong key rejected",
+    "decrypted archive matches original bytes",
+    "all six table snapshots match including hashes, timestamps and ownership",
+    "restored Argon2id password verifies",
+    "post-restore inactivity cleanup cascades only overdue account",
+    "expired sessions removed and manual deletion cascades without deleting other user",
+    "populated fixture source unchanged",
+    "personal application database snapshot unchanged"
+  ],
+  "archiveBytes": 12340,
+  "encryptedBytes": 12374,
+  "backupMs": 302.71299999999997,
+  "recoveryThroughIntegrityCheckMs": 374.7567999999999,
+  "totalMs": 1867.4839,
+  "backupFile": "populated-6c5a8b5b87afc7f9.aes",
+  "limits": "Small fixture; no nightly/offsite schedule, outage RPO/RTO or production HTTP/session certification",
+  "temporaryDatabasesRemoved": true
+}

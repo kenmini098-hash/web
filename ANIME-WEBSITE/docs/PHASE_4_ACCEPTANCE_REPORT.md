@@ -1,5 +1,9 @@
 # Phase 4 acceptance preparation
 
+## Populated recovery update ? 2026-11-24
+
+Step 4 passed eight integrity checks with three accounts, three sessions and six favorites in isolated PostgreSQL databases. Encrypted archive authentication, restored data/passwords and deletion behavior passed; the personal database was unchanged. See [PHASE_4_STEP_4_REPORT.md](PHASE_4_STEP_4_REPORT.md). Nightly/off-machine retention and production RPO/RTO remain unverified.
+
 ## Load/security update ? 2026-11-24
 
 Step 3 executed: security regressions and dependency audit passed; 1,000 local HTTP load requests produced 775 successes and 225 policy-driven 429 responses. Concurrent login p95 was 1,018.73 ms, above the 500 ms target. Shared-IP limits also constrain capacity. See [PHASE_4_STEP_3_REPORT.md](PHASE_4_STEP_3_REPORT.md). Load acceptance and whole-phase approval remain incomplete.

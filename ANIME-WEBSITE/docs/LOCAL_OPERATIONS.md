@@ -44,6 +44,7 @@ physical cleanup, but overdue accounts cannot log in or renew their activity.
 
 ```text
 node --env-file=../.local/app.env scripts/verify-local-backup.js
+node --env-file=../.local/app.env scripts/verify-populated-backup.js
 ```
 
 This local-only rehearsal dumps the trial database in memory, encrypts it with
@@ -54,8 +55,13 @@ It is bounded to 64 MiB dumps. The key is `.local/backup.key`; losing it makes t
 encrypted backups unreadable. Keep a protected copy of the key separately from
 backups when setting up durable backup storage.
 
+The populated rehearsal was executed on 2026-11-24 with three fixture accounts,
+three sessions and six favorites; table integrity and post-restore deletion checks
+passed. See [PHASE_4_STEP_4_REPORT.md](PHASE_4_STEP_4_REPORT.md). It creates its own
+source/restore databases and leaves the personal database unchanged.
+
 Before release, schedule nightly encrypted backups, retain seven daily restore
-points, and rehearse restoration with populated user/favorite data. Target RPO
+points, and rehearse restoration at the intended production data volume. Target RPO
 24 hours and RTO 8 hours; the local smoke rehearsal does not establish those
 service guarantees. No nightly OS schedule or off-machine backup was installed
 in this phase. Backup copies of deleted accounts expire with retention; clean
