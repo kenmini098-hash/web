@@ -54,7 +54,7 @@ The owner-approved provider deadline is 20 seconds total, shared across upstream
 | P4-02 | Implement responsive Vietnamese catalog UI and API integration. | Implemented; available-browser checks passed | BROWSER_QA_REPORT.md: 39/39 groups, 80 layout checks, mobile header fixed. Real Apple/Android and previous releases remain untested. |
 | P4-03 | Implement accounts, favorites, and PostgreSQL persistence. | Implemented and locally tested | API/UI and real PostgreSQL account suite pass. Registration/login, favorites, password change, export/deletion and cleanup implemented; verification/recovery excluded. See latest implementation report. |
 | P4-04 | Verify provider integration against current upstream behavior and terms. | Live integration verified in sampled scope | PHASE_4_STEP_2_REPORT.md; no upstream load/SLO or catalog-wide accuracy guarantee. Terms/migration findings retain their recorded dates. |
-| P4-05 | Review Phase 4 evidence and obtain owner acceptance. | Step 5 complete; final acceptance pending | PHASE_4_STEP_5_REPORT.md: 28/28 regression, PostgreSQL 7/7; owner approved option A personal-trial capacity/latency exceptions. No Phase 5 transition. |
+| P4-05 | Review Phase 4 evidence and obtain owner acceptance. | Step 6 handoff prepared; owner acceptance pending | PHASE_4_STEP_5_REPORT.md: 28/28 regression, PostgreSQL 7/7; owner approved option A personal-trial capacity/latency exceptions. Final handoff: PHASE_4_ACCEPTANCE_REPORT.md. No Phase 5 transition. |
 
 ## Phase 1 exit checklist
 

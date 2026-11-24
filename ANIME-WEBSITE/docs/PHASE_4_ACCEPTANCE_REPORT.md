@@ -1,59 +1,56 @@
-# Phase 4 acceptance preparation
+# Phase 4 implementation handoff
 
-## Owner decision A ? 2026-11-24
+Date: 2026-11-24. Evidence baseline: `8f10a4c`.
 
-The owner approved option A in [PHASE_4_STEP_5_REPORT.md](PHASE_4_STEP_5_REPORT.md): retain current Argon2id/security controls, 120 account requests/minute/IP and 10 authentication requests/15 minutes/IP. Accept the measured shared-IP capacity and concurrent-login p95 limitations for the personal trial only. Original capacity/latency targets are not represented as achieved. Step 5 is complete; unsupported browser/device and deployment/recovery guarantees remain unverified. Step 6 final acceptance and Phase 5 transition are not authorized by this decision.
+**Step 6 handoff prepared; owner acceptance pending.** This report is not self-approval, release approval or permission to start Phase 5. Earlier dated updates and failures are preserved in [PHASE_4_ACCEPTANCE_HISTORY.md](PHASE_4_ACCEPTANCE_HISTORY.md).
 
-## Findings and regression update ? 2026-11-24
+## Delivered scope
 
-Step 5 review and regressions are complete: 28/28 full suite and 7/7 real PostgreSQL account checks passed. Capacity findings remain open; the concrete A/B owner decision is in [PHASE_4_STEP_5_REPORT.md](PHASE_4_STEP_5_REPORT.md). Neither the original traffic targets nor Phase 4/5 approval is inferred from the regression results.
+Same-origin Express application, Vietnamese frontend, PostgreSQL accounts/favorites and real Wikidata metadata. Catalog supports Japanese-title search, browse, TV/film, genre/year filters, pagination and details. Accounts support email/password registration/login, sessions, password change, favorites, JSON export and confirmed self-deletion after recent reauthentication.
 
-## Populated recovery update ? 2026-11-24
+Owner policy: no email verification or password recovery; no fixed account lifetime; deletion after 168 hours without successful login/authenticated API use. Provider requests share a 20-second trial deadline. No paid API, catalog cache or video source is integrated. Fixtures remain confined to QA harnesses/disposable databases.
 
-Step 4 passed eight integrity checks with three accounts, three sessions and six favorites in isolated PostgreSQL databases. Encrypted archive authentication, restored data/passwords and deletion behavior passed; the personal database was unchanged. See [PHASE_4_STEP_4_REPORT.md](PHASE_4_STEP_4_REPORT.md). Nightly/off-machine retention and production RPO/RTO remain unverified.
+## Evidence matrix
 
-## Load/security update ? 2026-11-24
-
-Step 3 executed: security regressions and dependency audit passed; 1,000 local HTTP load requests produced 775 successes and 225 policy-driven 429 responses. Concurrent login p95 was 1,018.73 ms, above the 500 ms target. Shared-IP limits also constrain capacity. See [PHASE_4_STEP_3_REPORT.md](PHASE_4_STEP_3_REPORT.md). Load acceptance and whole-phase approval remain incomplete.
-
-## Live integration update ? 2026-11-24
-
-Step 2 passed 17/17 real-provider checks, including populated browse/search pagination and favorite metadata. See [PHASE_4_STEP_2_REPORT.md](PHASE_4_STEP_2_REPORT.md). This supersedes older statements that no successful current live browse/search evidence exists; latency guarantees and whole-phase acceptance remain pending.
-
-## Acceptance inventory ? 2026-11-24
-
-Current status and superseded historical wording are reconciled in [PHASE_4_STEP_1_CHECKLIST.md](PHASE_4_STEP_1_CHECKLIST.md). Step 1 is complete; later verification and whole-phase owner acceptance remain pending.
-
-## Browser regression update - 2026-11-21
-
-Available Windows browser runs passed 39/39 groups across Chrome, Edge, Firefox and WebKit, including 80 responsive layout checks. A crowded mobile header was fixed and the suite rerun successfully. See [BROWSER_QA_REPORT.md](BROWSER_QA_REPORT.md) and [BROWSER_QA_RESULTS.json](BROWSER_QA_RESULTS.json). Real Safari/iOS/Android and previous-major releases remain untested; whole-phase acceptance is still incomplete.
-
-## Current trial update - 2026-11-21
-
-The owner-approved provider deadline is 20 seconds total, shared across upstream calls and metadata-enriched favorite listing. Regression tests pass 27/27 on the current code. Earlier dated results below remain historical evidence. See [CATALOG_VERIFICATION_REPORT.md](CATALOG_VERIFICATION_REPORT.md) for evidence scope and outstanding acceptance work. Whole-phase acceptance remains incomplete; Phase 5 is not authorized.
-
-Date: 2026-11-16
-
-Status: **Implementation delivered locally; acceptance remains conditional.** This evidence checklist is not final approval or permission to start Phase 5. General catalog browsing still times out against the real provider; that finding must not be hidden by passing account tests.
-
-| Requirement | Evidence | Result |
+| Area | Evidence/date | Assessment |
 | --- | --- | --- |
-| Public catalog API and Vietnamese UI | Code and real detail probes; general browse still times out | Implemented; browse/latency acceptance unresolved |
-| Validation, provider failures and SQL lifecycle | 17 automated tests pass | Passed tested cases |
-| Film detail/year mapping | Q21697406/year 2016, 2664 ms | Sample passed; not a catalog-wide guarantee |
-| TV detail/year mapping | Q22126305/year 2013, 905 ms | Sample passed; not a filtered-browse guarantee |
-| Responsive and keyboard behavior | Account preview widths 320/375/768/1024/1440; registration/login/keyboard deletion | Tested flows passed; full browser matrix pending |
-| Accounts, sessions and favorites | Implemented API/UI; actual PostgreSQL HTTP suite 6/6; local port 3105 smoke checks | Passed tested cases; recovery/verification explicitly excluded |
-| Security and operational targets | CSRF, cookie flags, session revocation, rate/concurrency limits; encrypted local restore rehearsal | Tested protections passed; load/SLO and populated recovery targets unproven |
-| Independent review and owner acceptance | GPT-6 Luna account review found no concrete blocker; operational limitations documented | Account review complete; owner/whole-phase acceptance pending |
+| Scope inventory | [Step 1](PHASE_4_STEP_1_CHECKLIST.md), Nov 24 | Requirements, decisions and gaps recorded |
+| Live provider | [Step 2](PHASE_4_STEP_2_REPORT.md), Nov 24 | 17/17 checks passed, including populated browse/search pagination, filters/details and favorite metadata |
+| Regression | [Step 5](PHASE_4_STEP_5_REPORT.md), Nov 24 | 28/28 full suite; 7/7 real PostgreSQL account suite |
+| Browser/UI | [Browser report](BROWSER_QA_REPORT.md), Nov 21 | 39/39 groups, 80 layout checks across Chrome/Edge/Firefox/WebKit; mobile header fixed. Exact builds/fixture boundaries documented |
+| Load/security | [Step 3](PHASE_4_STEP_3_REPORT.md), Nov 24 | 1,000 requests: 775 success, 225 rate-limited, no 5xx. Login burst p95 1,018.73 ms; tested protections passed; production dependency audit: zero known vulnerabilities |
+| Populated recovery | [Step 4](PHASE_4_STEP_4_REPORT.md), Nov 24 | Eight checks passed; 3 users/3 sessions/6 favorites restored, source unchanged, temporary databases removed |
+| Finding disposition | [Step 5/decision A](PHASE_4_STEP_5_REPORT.md), Nov 24 | Trial capacity exceptions approved; limits/Argon2id unchanged |
 
-## Handoff
+These suite counts overlap in coverage and are not one combined acceptance score. Browser evidence predates documentation/QA-only changes; no new browser execution is claimed by this handoff.
 
-- Phase: 4 — implementation and acceptance preparation.
-- Responsible agent: ChatGPT; previous provider verification by GPT-6 Astra.
-- Completed: catalog/account implementation, local PostgreSQL setup, regression tests, browser account checks, local encrypted restore rehearsal and operations guidance.
-- Files: see `PHASE_4_IMPLEMENTATION_REPORT.md` and Git commits.
-- Evidence: `backend/test/`, `PHASE_4_PROVIDER_CHECK.md`, implementation report.
-- Outstanding: real general-browse timeout, provider-wide end-to-end evidence, full browser/load matrix and production recovery targets. Mail is not needed for this trial.
-- Recommendation: review the local trial using `LOCAL_OPERATIONS.md`; resolve or explicitly accept provider limitations before whole-phase acceptance.
-- Status: **Local implementation delivered; whole-phase acceptance not complete.**
+## Approved exceptions
+
+Owner selected A on Nov 24: retain 120 account requests/minute/IP, 10 authentication requests/15 minutes/IP and Argon2id protection. Accept measured shared-IP throttling and concurrent-login latency for the personal trial. Original 5/10 RPS capacity and login p95 <=500 ms goals are not marked achieved. Option A does not waive unrelated requirements.
+
+The approved 20-second provider budget is a trial exception. Real successes and historical timeouts coexist; source completeness and a Wikidata SLO are not guaranteed.
+
+## Outstanding items
+
+1. **Independent review:** the historical report records earlier independent account review. The entire latest package has not received independent approval. Root implementation/review and the earlier Copilot-unavailable fallback are disclosed; the separate Copilot/ChatGPT review chain is not claimed complete.
+2. **Device/browser support:** Safari/macOS, iOS Safari, Android Chrome and previous major releases remain untested. Windows WebKit is not Safari certification.
+3. **Recovery operations:** no nightly/off-machine schedule, seven restore points or production RPO/RTO evidence. Populated restoration passed only for the local fixture.
+4. **Deployment:** hosting, HTTPS/proxy validation, shared multi-instance counters, 30-day redacted logging, monthly availability and frontend web-vital measurements remain pending.
+5. **External sources:** dated source research remains applicable evidence; this handoff is not a fresh terms review, catalog-wide factual audit or rights grant. No video source is shipped.
+6. **Repository:** commits are local on `main`; no push or PR was performed. No separate feature-branch/reviewer approval is claimed. Publication remains deferred by the owner.
+
+No concrete unresolved High/Critical defect was identified in the tested scope. This is not independent whole-system approval or certification of an untested deployment. The outstanding items are not silently waived by option A.
+
+## Operations and handoff
+
+Use [LOCAL_OPERATIONS.md](LOCAL_OPERATIONS.md) to start/check the trial. Policies are in [ACCOUNT_POLICY.md](ACCOUNT_POLICY.md); contracts/mapping in [API_CONTRACT.md](API_CONTRACT.md) and [DATA_MAPPING.md](DATA_MAPPING.md). Step reports link raw evidence/commands. Secrets, keys and encrypted local artifacts remain under ignored `.local/`.
+
+- Phase: 4; step 6 — consolidated implementation handoff.
+- Responsible agent: ChatGPT.
+- Task: consolidate evidence, approved exceptions and outstanding work for owner review.
+- Completed: report/evidence index, archived historical acceptance notes, current task/phase status updates.
+- Files: this report, acceptance history, task board and project plan.
+- Tests: previous dated evidence summarized above; this document-only step runs no new runtime tests.
+- Issues/remaining: owner disposition and outstanding independent/device/operational checks above.
+- Recommendation: review acceptance of the **local personal-trial implementation**, explicitly carrying forward the remaining items. This is not approval to deploy or publish.
+- Status: **Step 6 handoff complete; Phase 4 exit awaits owner approval. Phase 5 requires separate authorization.**
