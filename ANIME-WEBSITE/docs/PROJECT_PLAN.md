@@ -2,7 +2,7 @@
 
 ## Current implementation handoff - 2026-11-24
 
-Phase 4 now includes the owner-approved account/favorite policies and implementation; old public-slice/lifecycle-blocked wording below is historical. All six remaining-work steps have reports; option A capacity exceptions are owner-approved. See [PHASE_4_ACCEPTANCE_REPORT.md](PHASE_4_ACCEPTANCE_REPORT.md) for the current handoff and outstanding independent/device/operational evidence. Local changes are committed; publication is deferred. Phase 4 exit awaits owner approval and Phases 5-7 remain inactive.
+Phase 4 exit was accepted for the local personal-trial scope on 2026-11-24 after final coordinator review; option A capacity exceptions are owner-approved. This is not production/deployment acceptance. See [PHASE_4_ACCEPTANCE_REPORT.md](PHASE_4_ACCEPTANCE_REPORT.md) for outstanding independent/device/operational evidence. Phase 5 has not been authorized; Phases 5-7 remain inactive.
 
 **Status:** Phase 1 and Phase 2 exits were approved on 2026-11-14. The owner
 approved the Phase 3 architecture, API contract, schema, and Phase 3 exit on

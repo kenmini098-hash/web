@@ -2,7 +2,26 @@
 
 Date: 2026-11-24. Evidence baseline: `8f10a4c`.
 
-**Step 6 handoff prepared; owner acceptance pending.** This report is not self-approval, release approval or permission to start Phase 5. Earlier dated updates and failures are preserved in [PHASE_4_ACCEPTANCE_HISTORY.md](PHASE_4_ACCEPTANCE_HISTORY.md).
+**Owner accepted Phase 4 exit for the local personal trial on 2026-11-24 after the final coordinator review below.** This is not production/deployment acceptance or permission to start Phase 5. Earlier dated updates and failures are preserved in [PHASE_4_ACCEPTANCE_HISTORY.md](PHASE_4_ACCEPTANCE_HISTORY.md).
+
+## Coordinator review — 2026-11-24
+
+The acceptance evidence and Phase 4 criteria were reviewed against the current
+handoff. Fresh local checks during this review passed: `npm test` 28/28 and
+the isolated real-PostgreSQL account suite 7/7. No product files were changed.
+The live-provider (17/17) and browser (39/39 groups, 80 layout checks) results
+remain dated evidence from their respective runs; neither was rerun for this
+review.
+
+**Recommendation:** accept Phase 4 only for the local personal-trial scope,
+carrying the approved option-A shared-IP and login-latency exceptions. Do not
+interpret this as production/deployment acceptance: real Safari/iOS/Android
+and previous browser versions, durable scheduled/off-machine recovery,
+deployment HTTPS/proxy and logging, availability/web-vitals, and independent
+whole-package review remain unverified. No unresolved Critical/High finding
+was reported in the tested scope, but this is not a security certification.
+The owner accepted Phase 4 exit for this limited trial scope. Phase 5 requires
+a separate authorization.
 
 ## Delivered scope
 
@@ -52,5 +71,5 @@ Use [LOCAL_OPERATIONS.md](LOCAL_OPERATIONS.md) to start/check the trial. Policie
 - Files: this report, acceptance history, task board and project plan.
 - Tests: previous dated evidence summarized above; this document-only step runs no new runtime tests.
 - Issues/remaining: owner disposition and outstanding independent/device/operational checks above.
-- Recommendation: review acceptance of the **local personal-trial implementation**, explicitly carrying forward the remaining items. This is not approval to deploy or publish.
-- Status: **Step 6 handoff complete; Phase 4 exit awaits owner approval. Phase 5 requires separate authorization.**
+- Owner decision: Phase 4 exit accepted for local personal-trial scope on 2026-11-24, after final review. Known limitations above remain explicit; this is not production acceptance.
+- Status: **Phase 4 exit accepted for local personal trial; Phase 5 not authorized.**

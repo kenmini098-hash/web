@@ -4,6 +4,14 @@
 
 The owner approved option A in [PHASE_4_STEP_5_REPORT.md](PHASE_4_STEP_5_REPORT.md): retain current Argon2id/security controls, 120 account requests/minute/IP and 10 authentication requests/15 minutes/IP. Accept the measured shared-IP capacity and concurrent-login p95 limitations for the personal trial only. Original capacity/latency targets are not represented as achieved. Step 5 is complete; unsupported browser/device and deployment/recovery guarantees remain unverified. Step 6 final acceptance and Phase 5 transition are not authorized by this decision.
 
+## Phase 4 exit decision — 2026-11-24
+
+After final coordinator review, the owner accepted Phase 4 exit for the local
+personal-trial scope. This is not production/deployment acceptance and does
+not authorize Phase 5. Unverified browser/device, off-machine recovery,
+deployment, operational and independent-review items remain explicit in
+`PHASE_4_ACCEPTANCE_REPORT.md`.
+
 ## Populated recovery update ? 2026-11-24
 
 Step 4 passed eight integrity checks with three accounts, three sessions and six favorites in isolated PostgreSQL databases. Encrypted archive authentication, restored data/passwords and deletion behavior passed; the personal database was unchanged. See [PHASE_4_STEP_4_REPORT.md](PHASE_4_STEP_4_REPORT.md). Nightly/off-machine retention and production RPO/RTO remain unverified.
@@ -29,7 +37,7 @@ Available Windows browser runs passed 39/39 groups across Chrome, Edge, Firefox 
 The owner-approved provider deadline is 20 seconds total, shared across upstream calls and metadata-enriched favorite listing. Regression tests pass 27/27 on the current code. Earlier dated results below remain historical evidence. See [CATALOG_VERIFICATION_REPORT.md](CATALOG_VERIFICATION_REPORT.md) for evidence scope and outstanding acceptance work. Whole-phase acceptance remains incomplete; Phase 5 is not authorized.
 
 **Current phase:** Phase 4 - Implementation
-**Phase status:** Owner approved the Phase 3 architecture, API contract, and schema, and separately authorized Phase 4 on 2026-11-15. Public catalog implementation is in progress. Account lifecycle decisions block account/favorite work; hosting-vendor selection is deferred to deployment planning.
+**Phase status:** Phase 4 exit accepted for the local personal trial on 2026-11-24. Phase 5 has not been authorized. Production/device/operational gaps remain open; see `PHASE_4_ACCEPTANCE_REPORT.md`.
 **Rule:** Tasks for later phases remain unstarted until explicit user approval.
 
 | ID | Task | Status | Evidence / notes |
@@ -54,7 +62,7 @@ The owner-approved provider deadline is 20 seconds total, shared across upstream
 | P4-02 | Implement responsive Vietnamese catalog UI and API integration. | Implemented; available-browser checks passed | BROWSER_QA_REPORT.md: 39/39 groups, 80 layout checks, mobile header fixed. Real Apple/Android and previous releases remain untested. |
 | P4-03 | Implement accounts, favorites, and PostgreSQL persistence. | Implemented and locally tested | API/UI and real PostgreSQL account suite pass. Registration/login, favorites, password change, export/deletion and cleanup implemented; verification/recovery excluded. See latest implementation report. |
 | P4-04 | Verify provider integration against current upstream behavior and terms. | Live integration verified in sampled scope | PHASE_4_STEP_2_REPORT.md; no upstream load/SLO or catalog-wide accuracy guarantee. Terms/migration findings retain their recorded dates. |
-| P4-05 | Review Phase 4 evidence and obtain owner acceptance. | Step 6 handoff prepared; owner acceptance pending | PHASE_4_STEP_5_REPORT.md: 28/28 regression, PostgreSQL 7/7; owner approved option A personal-trial capacity/latency exceptions. Final handoff: PHASE_4_ACCEPTANCE_REPORT.md. No Phase 5 transition. |
+| P4-05 | Review Phase 4 evidence and obtain owner acceptance. | Done - local personal-trial exit accepted 2026-11-24 | `PHASE_4_ACCEPTANCE_REPORT.md`; final coordinator review, `npm test` 28/28 and real PostgreSQL account suite 7/7. Acceptance is not production approval; Phase 5 requires separate authorization. |
 
 ## Phase 1 exit checklist
 
