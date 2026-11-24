@@ -1,0 +1,36 @@
+{
+  "at": "2026-11-24T03:18:01.238Z",
+  "scope": "Disposable PGlite account; real unmocked Wikidata metadata",
+  "results": [
+    {
+      "name": "temporary-account-register-login",
+      "status": "passed",
+      "ms": 223
+    },
+    {
+      "name": "favorite-add-real-provider",
+      "status": "passed",
+      "ms": 491
+    },
+    {
+      "name": "favorite-idempotent-real-provider",
+      "status": "passed",
+      "ms": 736
+    },
+    {
+      "name": "favorite-list-real-provider",
+      "status": "passed",
+      "ms": 708
+    },
+    {
+      "name": "favorite-remove-and-empty",
+      "status": "passed",
+      "ms": 11
+    },
+    {
+      "name": "temporary-account-delete",
+      "status": "passed",
+      "ms": 7
+    }
+  ]
+}

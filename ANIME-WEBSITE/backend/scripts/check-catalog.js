@@ -28,6 +28,8 @@ function list(response, data) {
     assert.ok(typeof item.title === "string" && item.title.length);
     assert.ok(["anime_tv", "anime_film"].includes(item.entityType));
     assert.equal(item.source.provider, "wikidata");
+    assert.ok(/^Q[1-9][0-9]*$/.test(item.source.providerId));
+    assert.ok(item.year === null || Number.isInteger(item.year));
     assert.ok(!item.genres.some(genre => ["Q63952888", "Q20650540"].includes(genre.id)));
   }
 }
@@ -68,8 +70,17 @@ async function main() {
       list(response, data); assert.ok(data.items.every(item => item.genres.some(genre => genre.id === genreId)));
     });
   } else results.push({ name: "genre-from-current-facets", status: "not-verified", reason: "No successful current genre facet" });
+  const search = await check("search-pagination-first", `/api/v1/anime?q=${encodeURIComponent("ガンダム")}&limit=10`, (response, data) => {
+    list(response, data); assert.ok(data.items.length, "No qualified records on search page");
+  });
+  if (search?.page.nextCursor) await check("search-pagination-next", `/api/v1/anime?q=${encodeURIComponent("ガンダム")}&limit=10&cursor=${encodeURIComponent(search.page.nextCursor)}`, (response, data) => {
+    list(response, data); assert.ok(data.items.length, "No qualified records on next search page");
+    assert.ok(!data.items.some(item => search.items.some(previous => previous.id === item.id)), "Repeated search result");
+    assert.notEqual(data.page.nextCursor, search.page.nextCursor);
+  });
+  else results.push({ name: "search-pagination-next", status: "not-verified", reason: "No successful search cursor" });
   const report = { at: new Date().toISOString(), base: base.origin, results };
-  const destination = path.resolve(__dirname, "../../docs/CATALOG_LIVE_CHECK.json");
+  const destination = path.resolve(__dirname, `../../docs/CATALOG_LIVE_CHECK_${new Date().toISOString().replace(/[:.]/g, "-")}.json`);
   fs.writeFileSync(destination, JSON.stringify(report, null, 2) + "\n");
   process.stdout.write(JSON.stringify(report, null, 2) + "\n");
   if (results.some(result => result.status !== "passed")) process.exitCode = 1;
